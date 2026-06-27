@@ -1,4 +1,4 @@
-import Svg, { Path, Circle, Line, Rect } from 'react-native-svg';
+import Svg, { Path, Circle, Line, Rect, Polygon, Ellipse } from 'react-native-svg';
 import type { ComponentType, ReactNode } from 'react';
 
 export interface IconProps {
@@ -11,7 +11,7 @@ const DEFAULT_SIZE = 24;
 const DEFAULT_STROKE = 2;
 
 function createIcon(
-  paths: (elements: { Path: typeof Path; Circle: typeof Circle; Line: typeof Line; Rect: typeof Rect }) => ReactNode,
+  paths: (elements: { Path: typeof Path; Circle: typeof Circle; Line: typeof Line; Rect: typeof Rect; Polygon: typeof Polygon; Ellipse: typeof Ellipse }, color: string) => ReactNode,
 ): ComponentType<IconProps> {
   return function Icon({ size = DEFAULT_SIZE, color = '#1F1F1F', strokeWidth = DEFAULT_STROKE }: IconProps) {
     return (
@@ -24,8 +24,9 @@ function createIcon(
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
+        style={{ width: size, height: size }}
       >
-        {paths({ Path, Circle, Line, Rect })}
+        {paths({ Path, Circle, Line, Rect, Polygon, Ellipse }, color)}
       </Svg>
     );
   };
@@ -146,19 +147,19 @@ export const MessageCircle = createIcon(({ Path }) => (
   <Path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
 ));
 
-export const MoreHorizontal = createIcon(({ Circle }) => (
+export const MoreHorizontal = createIcon(({ Circle }, color) => (
   <>
-    <Circle cx="12" cy="12" r="1" fill="currentColor" />
-    <Circle cx="19" cy="12" r="1" fill="currentColor" />
-    <Circle cx="5" cy="12" r="1" fill="currentColor" />
+    <Circle cx="12" cy="12" r="1" fill={color} />
+    <Circle cx="19" cy="12" r="1" fill={color} />
+    <Circle cx="5" cy="12" r="1" fill={color} />
   </>
 ));
 
-export const MoreVertical = createIcon(({ Circle }) => (
+export const MoreVertical = createIcon(({ Circle }, color) => (
   <>
-    <Circle cx="12" cy="12" r="1" fill="currentColor" />
-    <Circle cx="12" cy="5" r="1" fill="currentColor" />
-    <Circle cx="12" cy="19" r="1" fill="currentColor" />
+    <Circle cx="12" cy="12" r="1" fill={color} />
+    <Circle cx="12" cy="5" r="1" fill={color} />
+    <Circle cx="12" cy="19" r="1" fill={color} />
   </>
 ));
 
@@ -362,5 +363,47 @@ export const PhoneCall = createIcon(({ Path }) => (
   <>
     <Path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" />
     <Path d="M15.05 5.05a7 7 0 010 9.9" />
+  </>
+));
+
+export const Database = createIcon(({ Path, Ellipse }) => (
+  <>
+    <Ellipse cx="12" cy="5" rx="9" ry="3" />
+    <Path d="M21 5v6c0 1.66-4 3-9 3s-9-1.34-9-3V5" />
+    <Path d="M21 11v6c0 1.66-4 3-9 3s-9-1.34-9-3v-6" />
+  </>
+));
+
+export const Globe = createIcon(({ Path, Circle, Line }) => (
+  <>
+    <Circle cx="12" cy="12" r="10" />
+    <Line x1="2" y1="12" x2="22" y2="12" />
+    <Path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+  </>
+));
+
+export const HelpCircle = createIcon(({ Path, Circle, Line }) => (
+  <>
+    <Circle cx="12" cy="12" r="10" />
+    <Path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+    <Line x1="12" y1="17" x2="12.01" y2="17" />
+  </>
+));
+
+export const Users = createIcon(({ Path, Circle }) => (
+  <>
+    <Path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+    <Circle cx="9" cy="7" r="4" />
+    <Path d="M23 21v-2a4 4 0 00-3-3.87" />
+    <Path d="M16 3.13a4 4 0 010 7.75" />
+  </>
+));
+
+export const UserPlus = createIcon(({ Path, Circle, Line }) => (
+  <>
+    <Path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+    <Circle cx="8.5" cy="7" r="4" />
+    <Line x1="20" y1="8" x2="20" y2="14" />
+    <Line x1="23" y1="11" x2="17" y2="11" />
   </>
 ));

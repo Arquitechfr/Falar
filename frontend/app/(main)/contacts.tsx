@@ -1,20 +1,27 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { View, Text, Pressable, SectionList, RefreshControl, Share } from 'react-native';
-import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeScreen } from '@/components/SafeScreen';
 import { useTheme } from '@/hooks/useTheme';
 import { useToast } from '@/components/ui/Toast';
 import { typography } from '@/constants/typography';
 import { spacing } from '@/constants/spacing';
-import { ScreenHeader, SearchBar, Avatar, EmptyState, Skeleton, Badge } from '@/components/ui';
+import {
+  SearchBar,
+  Avatar,
+  EmptyState,
+  Skeleton,
+  Badge,
+  Button,
+} from '@/components/ui';
 import { useContacts } from '@/features/contacts/useContacts';
 import type { SyncedContact } from '@/features/contacts/contactsApi';
 import { computeConversationId } from '@/utils/conversationId';
 import { useAuthStore } from '@/features/auth/authStore';
-import { Search as SearchIcon, UserPlus, Share as ShareIcon } from '@/components/ui/Icons';
+import { useRouter } from 'expo-router';
+import { Search as SearchIcon, UserPlus, Share as ShareIcon, Users as UsersIcon } from '@/components/ui/Icons';
 
-export default function NewChatScreen() {
+export default function ContactsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const toast = useToast();
@@ -28,7 +35,7 @@ export default function NewChatScreen() {
       try {
         await loadStoredContacts();
       } catch {
-        // silent
+        // silent — will show empty state
       } finally {
         setInitialized(true);
       }
@@ -107,12 +114,11 @@ export default function NewChatScreen() {
   if (isLoading && !refreshing && contacts.length === 0) {
     return (
       <SafeScreen edges={['top', 'left', 'right']}>
-        <ScreenHeader title="Nouvelle conversation" onBack={() => router.back()} showBack />
         <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.md }}>
           <Skeleton width="100%" height={44} radius={14} />
         </View>
         <View style={{ paddingTop: spacing.md, gap: spacing.sm, paddingHorizontal: spacing.lg }}>
-          {Array.from({ length: 8 }).map((_, i) => (
+          {Array.from({ length: 10 }).map((_, i) => (
             <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 }}>
               <Skeleton width={48} height={48} radius={24} />
               <View style={{ gap: 6, flex: 1 }}>
@@ -129,7 +135,6 @@ export default function NewChatScreen() {
   if (permissionDenied) {
     return (
       <SafeScreen edges={['top', 'left', 'right']}>
-        <ScreenHeader title="Nouvelle conversation" onBack={() => router.back()} showBack />
         <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.sm }}>
           <SearchBar
             value={search}
@@ -138,7 +143,7 @@ export default function NewChatScreen() {
           />
         </View>
         <EmptyState
-          icon={<UserPlus size={32} color={colors.textSecondary} />}
+          icon={<UsersIcon size={32} color={colors.textSecondary} />}
           title="Accès aux contacts requis"
           description="Autorisez l'accès à votre carnet d'adresses pour voir vos contacts sur Falar."
           actionLabel="Autoriser l'accès"
@@ -150,7 +155,6 @@ export default function NewChatScreen() {
 
   return (
     <SafeScreen edges={['top', 'left', 'right']}>
-      <ScreenHeader title="Nouvelle conversation" onBack={() => router.back()} showBack />
       <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.sm }}>
         <SearchBar
           value={search}
@@ -241,7 +245,7 @@ export default function NewChatScreen() {
             />
           ) : null
         }
-        contentContainerStyle={{ paddingBottom: spacing.xxl }}
+        contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

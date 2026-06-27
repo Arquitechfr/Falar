@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { View, Pressable, DimensionValue } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -14,6 +14,7 @@ import { spacing } from '@/constants/spacing';
 import { radii } from '@/constants/theme';
 
 const SPRING_CONFIG = { damping: 24, stiffness: 280, mass: 0.8 };
+const EXIT_DURATION = 250;
 
 export interface BottomSheetProps {
   visible: boolean;
@@ -32,14 +33,18 @@ export function BottomSheet({
   const insets = useSafeAreaInsets();
   const translateY = useSharedValue(600);
   const backdropOpacity = useSharedValue(0);
+  const [shouldRender, setShouldRender] = useState(visible);
 
   useEffect(() => {
     if (visible) {
+      setShouldRender(true);
       backdropOpacity.value = withTiming(1, { duration: 250 });
       translateY.value = withSpring(0, SPRING_CONFIG);
     } else {
       backdropOpacity.value = withTiming(0, { duration: 200 });
-      translateY.value = withTiming(600, { duration: 250 });
+      translateY.value = withTiming(600, { duration: EXIT_DURATION });
+      const timer = setTimeout(() => setShouldRender(false), EXIT_DURATION);
+      return () => clearTimeout(timer);
     }
   }, [visible, translateY, backdropOpacity]);
 
@@ -63,7 +68,7 @@ export function BottomSheet({
     opacity: backdropOpacity.value,
   }));
 
-  if (!visible) return null;
+  if (!shouldRender) return null;
 
   return (
     <View

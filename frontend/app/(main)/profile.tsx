@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { View, Text, Pressable, ScrollView, Share } from 'react-native';
+import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeScreen } from '@/components/SafeScreen';
 import { useAuthStore } from '@/features/auth/authStore';
@@ -11,9 +12,10 @@ import { typography } from '@/constants/typography';
 import { spacing } from '@/constants/spacing';
 import { radii } from '@/constants/theme';
 import { Avatar, Input, Button, ActionSheet, Modal } from '@/components/ui';
-import { Shield, Phone, User, Bell, LogOut, Edit, Camera, QrCode, Share as ShareIcon, Settings as SettingsIcon } from '@/components/ui/Icons';
+import { Shield, Phone, User, Bell, LogOut, Edit, Camera, QrCode, Share as ShareIcon, Settings as SettingsIcon, ChevronRight } from '@/components/ui/Icons';
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const { user, logout } = useAuth();
   const { colors } = useTheme();
   const toast = useToast();
@@ -282,7 +284,7 @@ export default function ProfileScreen() {
 
           {/* Settings */}
           <Pressable
-            onPress={() => {}}
+            onPress={() => router.push('/(main)/settings')}
             style={({ pressed }) => ({
               flexDirection: 'row',
               alignItems: 'center',
@@ -293,13 +295,18 @@ export default function ProfileScreen() {
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <SettingsIcon size={18} color={colors.textSecondary} />
+            <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <SettingsIcon size={18} color={colors.textSecondary} />
+            </View>
             <Text style={{ ...typography.body, color: colors.textPrimary, flex: 1 }}>Paramètres</Text>
-            <Text style={{ ...typography.caption, color: colors.textSecondary }}>›</Text>
+            <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <ChevronRight size={18} color={colors.textSecondary} />
+            </View>
           </Pressable>
 
           {/* Notifications */}
           <Pressable
+            onPress={() => router.push('/(main)/notifications')}
             style={({ pressed }) => ({
               flexDirection: 'row',
               alignItems: 'center',
@@ -310,9 +317,13 @@ export default function ProfileScreen() {
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <Bell size={18} color={colors.textSecondary} />
+            <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Bell size={18} color={colors.textSecondary} />
+            </View>
             <Text style={{ ...typography.body, color: colors.textPrimary, flex: 1 }}>Notifications</Text>
-            <Text style={{ ...typography.caption, color: colors.textSecondary }}>Activées</Text>
+            <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <ChevronRight size={18} color={colors.textSecondary} />
+            </View>
           </Pressable>
 
           {/* Logout */}
@@ -330,7 +341,9 @@ export default function ProfileScreen() {
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <LogOut size={18} color={colors.danger} />
+            <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <LogOut size={18} color={colors.danger} />
+            </View>
             <Text style={{ ...typography.bodyMedium, color: colors.danger }}>Se déconnecter</Text>
           </Pressable>
         </View>

@@ -125,17 +125,34 @@ jobs:
           fi
 
       # ── 8. Upload artifact ────────────────────────────────────────────────
+      # L'upload vers GitHub peut échouer si le quota artifact est atteint.
+      # On continue le workflow et on conserve le build sur le runner self-hosted.
       - name: Upload APK/AAB artifact
         uses: actions/upload-artifact@v5
+        continue-on-error: true
         with:
           name: falar-${{ github.event.inputs.profile }}-${{ github.run_number }}
           path: |
             ${{ env.MOBILE_DIR }}/android/app/build/outputs/apk/**/*.apk
             ${{ env.MOBILE_DIR }}/android/app/build/outputs/bundle/**/*.aab
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 1
 
-      # ── 9. Cleanup ───────────────────────────────────────────────────────
+      # ── 9. Fallback local artifact on runner ──────────────────────────────
+      - name: Copy build outputs to runner output directory
+        if: always()
+        run: |
+          OUTPUT_DIR="${{ vars.ANDROID_OUTPUT_DIR || '/opt/falar/builds' }}"
+          RUN_NAME="falar-${{ github.event.inputs.profile }}-${{ github.run_number }}"
+          DEST_DIR="$OUTPUT_DIR/$RUN_NAME"
+          mkdir -p "$DEST_DIR"
+
+          find ${{ env.MOBILE_DIR }}/android/app/build/outputs -type f \( -name '*.apk' -o -name '*.aab' \) -exec cp {} "$DEST_DIR/" \;
+
+          echo "📦 Local artifacts copied to: $DEST_DIR"
+          ls -lh "$DEST_DIR"
+
+      # ── 10. Cleanup ──────────────────────────────────────────────────────
       - name: Cleanup build outputs
         if: always()
         run: rm -rf ${{ env.MOBILE_DIR }}/android/app/build/outputs

@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { View, Text, Image, Pressable, ViewStyle } from 'react-native';
 import { Defs, LinearGradient, Rect, Stop, Svg } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
@@ -35,6 +36,7 @@ export function Avatar({
   const initials = getInitials(name);
   const fontSize = size * 0.36;
   const dotSize = Math.max(8, size * 0.18);
+  const gradientId = useRef(`avatar-${Math.random().toString(36).slice(2, 10)}`).current;
 
   const content = (
     <View style={{ width: size, height: size, ...style }}>
@@ -52,12 +54,12 @@ export function Avatar({
         <View style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden' }}>
           <Svg width={size} height={size}>
             <Defs>
-              <LinearGradient id={`avatar-${size}`} x1="0" y1="0" x2="0" y2="1">
+              <LinearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                 <Stop offset="0" stopColor={colors.primaryLight} />
                 <Stop offset="1" stopColor={colors.primaryDark} />
               </LinearGradient>
             </Defs>
-            <Rect width={size} height={size} fill={`url(#avatar-${size})`} />
+            <Rect width={size} height={size} fill={`url(#${gradientId})`} />
           </Svg>
           <View
             style={{

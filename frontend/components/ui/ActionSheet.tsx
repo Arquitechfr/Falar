@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -14,6 +14,7 @@ import { spacing } from '@/constants/spacing';
 import { radii } from '@/constants/theme';
 
 const SPRING_CONFIG = { damping: 24, stiffness: 280, mass: 0.8 };
+const EXIT_DURATION = 200;
 
 export interface ActionSheetItem {
   label: string;
@@ -34,14 +35,18 @@ export function ActionSheet({ visible, onClose, title, actions }: ActionSheetPro
   const insets = useSafeAreaInsets();
   const translateY = useSharedValue(400);
   const backdropOpacity = useSharedValue(0);
+  const [shouldRender, setShouldRender] = useState(visible);
 
   useEffect(() => {
     if (visible) {
+      setShouldRender(true);
       backdropOpacity.value = withTiming(1, { duration: 250 });
       translateY.value = withSpring(0, SPRING_CONFIG);
     } else {
       backdropOpacity.value = withTiming(0, { duration: 200 });
-      translateY.value = withTiming(400, { duration: 200 });
+      translateY.value = withTiming(400, { duration: EXIT_DURATION });
+      const timer = setTimeout(() => setShouldRender(false), EXIT_DURATION);
+      return () => clearTimeout(timer);
     }
   }, [visible, translateY, backdropOpacity]);
 
@@ -53,7 +58,7 @@ export function ActionSheet({ visible, onClose, title, actions }: ActionSheetPro
     opacity: backdropOpacity.value,
   }));
 
-  if (!visible) return null;
+  if (!shouldRender) return null;
 
   const handlePress = (action: ActionSheetItem) => {
     action.onPress();

@@ -277,6 +277,7 @@ export function ConversationItem({
                       <Text
                         style={{
                           ...typography.micro,
+                          fontFamily: 'Outfit_700Bold',
                           color: '#FFFFFF',
                           fontWeight: '700',
                         }}

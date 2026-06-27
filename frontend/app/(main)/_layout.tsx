@@ -7,7 +7,7 @@ import { connect, disconnect } from '@/services/socket';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { BottomTabBar } from '@/components/ui/BottomTabBar';
-import { MessageCircle, User } from '@/components/ui/Icons';
+import { MessageCircle, User, Users } from '@/components/ui/Icons';
 import { useIncomingCall } from '@/features/calls/useIncomingCall';
 
 export default function MainLayout() {
@@ -54,12 +54,23 @@ export default function MainLayout() {
           }}
         />
         <Tabs.Screen
+          name="contacts"
+          options={{
+            title: 'Contacts',
+            tabBarIcon: ({ color, size }) => <Users size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
           name="profile"
           options={{
             title: 'Profil',
             tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
           }}
         />
+        <Tabs.Screen name="settings" options={{ href: null, headerShown: false }} />
+        <Tabs.Screen name="new-chat" options={{ href: null, headerShown: false }} />
+        <Tabs.Screen name="search" options={{ href: null, headerShown: false }} />
+        <Tabs.Screen name="notifications" options={{ href: null, headerShown: false }} />
       </Tabs>
     </View>
   );

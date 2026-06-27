@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useMemo } from 'react';
-import { View, Text, TextInput, Pressable, FlatList, ViewStyle } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, ViewStyle } from 'react-native';
 import { parsePhoneNumberFromString, AsYouType } from 'libphonenumber-js';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
@@ -172,11 +172,10 @@ export function PhoneInput({
           </View>
         </View>
 
-        <FlatList
-          data={filteredCountries}
-          keyExtractor={(item) => item.iso2}
-          renderItem={({ item }) => (
+        <ScrollView keyboardShouldPersistTaps="handled">
+          {filteredCountries.map((item, index) => (
             <Pressable
+              key={item.iso2}
               onPress={() => handleSelectCountry(item)}
               style={({ pressed }) => ({
                 flexDirection: 'row',
@@ -198,12 +197,8 @@ export function PhoneInput({
                 <Check size={18} color={colors.primary} />
               )}
             </Pressable>
-          )}
-          ItemSeparatorComponent={() => (
-            <View style={{ height: 0.5, backgroundColor: colors.border, marginLeft: spacing.lg + 24 + spacing.md }} />
-          )}
-          keyboardShouldPersistTaps="handled"
-        />
+          ))}
+        </ScrollView>
       </BottomSheet>
     </>
   );

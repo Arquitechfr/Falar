@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import { Modal as RNModal, View, Pressable, ViewStyle } from 'react-native';
+import { Modal as RNModal, View, Text, Pressable, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';

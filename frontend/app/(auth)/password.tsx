@@ -27,6 +27,8 @@ export default function PasswordScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = useCallback(async () => {
+    console.log('[PasswordScreen] handleSubmit called', { isNewUser, phone: params.phone, code: params.code });
+
     if (!password) {
       toast.show('Entrez un mot de passe', 'error');
       return;
@@ -37,14 +39,22 @@ export default function PasswordScreen() {
       return;
     }
 
+    if (!params.phone || !params.code) {
+      toast.show('Erreur: paramètres manquants', 'error');
+      return;
+    }
+
     setLoading(true);
     try {
+      console.log('[PasswordScreen] deriving keypair...');
       const { privateKey, publicKey, publicKeyBase64 } = await deriveKeypair(
         password,
         params.phone,
       );
+      console.log('[PasswordScreen] keypair derived, registering push...');
 
       const deviceToken = await registerForPushNotifications();
+      console.log('[PasswordScreen] push registered, verifying OTP...');
 
       const result = await verifyOtp(
         params.phone,
@@ -52,6 +62,7 @@ export default function PasswordScreen() {
         publicKeyBase64,
         deviceToken || undefined,
       );
+      console.log('[PasswordScreen] OTP verified, saving tokens...');
 
       await setTokens(result.accessToken, result.refreshToken);
       useCryptoStore.getState().setKeys(privateKey, publicKey);
@@ -59,6 +70,7 @@ export default function PasswordScreen() {
 
       router.replace('/(main)/conversations');
     } catch (err) {
+      console.error('[PasswordScreen] error:', err);
       const msg = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message;
       toast.show(msg || 'Échec de la vérification', 'error');
     } finally {

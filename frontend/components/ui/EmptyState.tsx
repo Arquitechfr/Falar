@@ -69,7 +69,7 @@ export function EmptyState({
         </Text>
       )}
       {actionLabel && onAction && (
-        <Button label={actionLabel} onPress={onAction} variant="secondary" size="md" />
+        <Button label={actionLabel} onPress={onAction} variant="secondary" size="md" style={{ alignSelf: 'center' }} />
       )}
     </View>
   );

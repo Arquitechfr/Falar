@@ -19,6 +19,7 @@ interface TabRoute {
 interface TabDescriptor {
   options: {
     title?: string;
+    href?: string | null;
     tabBarIcon?: (props: { color: string; size: number }) => ReactNode;
   };
 }
@@ -112,6 +113,10 @@ export function BottomTabBar({ state, descriptors, navigation, style }: BottomTa
     [navigation],
   );
 
+  const visibleRoutes = state.routes.filter(
+    (route) => descriptors[route.key]?.options?.tabBarIcon != null,
+  );
+
   return (
     <View
       style={[
@@ -125,15 +130,18 @@ export function BottomTabBar({ state, descriptors, navigation, style }: BottomTa
         style,
       ]}
     >
-      {state.routes.map((route, index) => (
-        <TabItem
-          key={route.key}
-          route={route}
-          isFocused={state.index === index}
-          descriptor={descriptors[route.key]}
-          onPress={() => handlePress(route)}
-        />
-      ))}
+      {visibleRoutes.map((route) => {
+        const index = state.routes.indexOf(route);
+        return (
+          <TabItem
+            key={route.key}
+            route={route}
+            isFocused={state.index === index}
+            descriptor={descriptors[route.key]}
+            onPress={() => handlePress(route)}
+          />
+        );
+      })}
     </View>
   );
 }

@@ -7,7 +7,7 @@ import { typography } from '@/constants/typography';
 import { spacing } from '@/constants/spacing';
 import { radii } from '@/constants/theme';
 import { ScreenHeader, Card } from '@/components/ui';
-import { User, Shield, Bell, Moon, Database, Globe, HelpCircle, Info, ChevronRight } from '@/components/ui/Icons';
+import { User, Shield, Bell, Moon, Database, Globe, HelpCircle, Info, ChevronRight, Users } from '@/components/ui/Icons';
 
 interface SettingsItem {
   icon: React.ReactNode;
@@ -30,6 +30,7 @@ export default function SettingsScreen() {
       title: 'Compte',
       items: [
         { icon: <User size={20} color={colors.primary} />, label: 'Profil', onPress: () => router.push('/(main)/profile') },
+        { icon: <Users size={20} color={colors.primary} />, label: 'Contacts', onPress: () => router.push('/(main)/contacts') },
         { icon: <Shield size={20} color={colors.primary} />, label: 'Confidentialité', value: 'Activée' },
       ],
     },

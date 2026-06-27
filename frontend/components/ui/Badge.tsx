@@ -49,6 +49,7 @@ export function Badge({ label, variant = 'primary', size = 'md', icon, style }: 
       <Text
         style={{
           ...typography.micro,
+          fontFamily: 'Outfit_700Bold',
           fontSize,
           color: '#FFFFFF',
           fontWeight: '700',

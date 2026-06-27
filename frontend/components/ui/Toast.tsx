@@ -48,7 +48,7 @@ const TOAST_ICONS: Record<ToastType, typeof CheckCircle> = {
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const { colors } = useTheme();
+  const { colors, shadows } = useTheme();
   const insets = useSafeAreaInsets();
   const [toast, setToast] = useState<ToastData | null>(null);
   const translateY = useSharedValue(-100);
@@ -110,7 +110,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               borderRadius: radii.md,
               paddingHorizontal: spacing.md,
               paddingVertical: spacing.md,
-              ...colors.shadows.md,
+              ...shadows.md,
             }}
           >
             <Icon size={22} color={iconColor[toast.type]} />

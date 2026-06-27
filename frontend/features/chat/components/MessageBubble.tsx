@@ -122,7 +122,7 @@ export function MessageBubble({ message, isMine, onRetry, onReply, onLongPress }
               hitSlop={8}
               style={{ marginTop: 4, alignSelf: 'flex-end' }}
             >
-              <Text style={{ ...typography.caption, color: colors.danger, fontWeight: '600' }}>
+              <Text style={{ ...typography.caption, fontFamily: 'Outfit_600SemiBold', color: colors.danger, fontWeight: '600' }}>
                 Réessayer
               </Text>
             </Pressable>

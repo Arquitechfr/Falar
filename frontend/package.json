@@ -42,15 +42,16 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "babel-preset-expo": "~56.0.0",
     "prettier": "^3.8.5",
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "expo start",
-    "clear": "expo start --clear",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "start": "expo start --dev-client",
+    "clear": "expo start --clear --dev-client",
+    "android": "expo start --android --dev-client",
+    "ios": "expo start --ios --dev-client",
+    "web": "expo start --web --dev-client"
   },
   "packageManager": "pnpm@10.33.2",
   "private": true,

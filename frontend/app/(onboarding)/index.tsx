@@ -9,6 +9,7 @@ import Animated, {
   withSpring,
   withTiming,
   interpolate,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
@@ -48,6 +49,49 @@ const PAGES: Page[] = [
     description: 'Une messagerie qui respecte votre vie privée sans compromis sur l\'expérience.',
   },
 ];
+
+function OnboardingPage({ item, index, scrollX }: { item: Page; index: number; scrollX: SharedValue<number> }) {
+  const { colors } = useTheme();
+  const inputRange = [
+    (index - 1) * SCREEN_WIDTH,
+    index * SCREEN_WIDTH,
+    (index + 1) * SCREEN_WIDTH,
+  ];
+
+  const illustrationStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        scale: interpolate(scrollX.value, inputRange, [0.8, 1, 0.8], 'clamp'),
+      },
+    ],
+    opacity: interpolate(scrollX.value, inputRange, [0.3, 1, 0.3], 'clamp'),
+  }));
+
+  const textStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollX.value, inputRange, [0, 1, 0], 'clamp'),
+    transform: [
+      {
+        translateY: interpolate(scrollX.value, inputRange, [20, 0, -20], 'clamp'),
+      },
+    ],
+  }));
+
+  return (
+    <View style={{ width: SCREEN_WIDTH, alignItems: 'center', paddingHorizontal: spacing.xl }}>
+      <Animated.View style={illustrationStyle}>
+        {item.illustration}
+      </Animated.View>
+      <Animated.View style={[textStyle, { alignItems: 'center', marginTop: spacing.xl, gap: spacing.sm }]}>
+        <Text style={{ ...typography.heading, color: colors.textPrimary, textAlign: 'center' }}>
+          {item.title}
+        </Text>
+        <Text style={{ ...typography.body, color: colors.textSecondary, textAlign: 'center' }}>
+          {item.description}
+        </Text>
+      </Animated.View>
+    </View>
+  );
+}
 
 function ProgressDot({ index, activeIndex }: { index: number; activeIndex: number }) {
   const { colors } = useTheme();
@@ -103,47 +147,9 @@ export default function OnboardingScreen() {
     }
   }, [currentIndex]);
 
-  const renderItem = useCallback(({ item, index }: { item: Page; index: number }) => {
-    const inputRange = [
-      (index - 1) * SCREEN_WIDTH,
-      index * SCREEN_WIDTH,
-      (index + 1) * SCREEN_WIDTH,
-    ];
-
-    const illustrationStyle = useAnimatedStyle(() => ({
-      transform: [
-        {
-          scale: interpolate(scrollX.value, inputRange, [0.8, 1, 0.8], 'clamp'),
-        },
-      ],
-      opacity: interpolate(scrollX.value, inputRange, [0.3, 1, 0.3], 'clamp'),
-    }));
-
-    const textStyle = useAnimatedStyle(() => ({
-      opacity: interpolate(scrollX.value, inputRange, [0, 1, 0], 'clamp'),
-      transform: [
-        {
-          translateY: interpolate(scrollX.value, inputRange, [20, 0, -20], 'clamp'),
-        },
-      ],
-    }));
-
-    return (
-      <View style={{ width: SCREEN_WIDTH, alignItems: 'center', paddingHorizontal: spacing.xl }}>
-        <Animated.View style={illustrationStyle}>
-          {item.illustration}
-        </Animated.View>
-        <Animated.View style={[textStyle, { alignItems: 'center', marginTop: spacing.xl, gap: spacing.sm }]}>
-          <Text style={{ ...typography.heading, color: colors.textPrimary, textAlign: 'center' }}>
-            {item.title}
-          </Text>
-          <Text style={{ ...typography.body, color: colors.textSecondary, textAlign: 'center' }}>
-            {item.description}
-          </Text>
-        </Animated.View>
-      </View>
-    );
-  }, [colors, scrollX]);
+  const renderItem = useCallback(({ item, index }: { item: Page; index: number }) => (
+    <OnboardingPage item={item} index={index} scrollX={scrollX} />
+  ), [scrollX]);
 
   const isLastPage = currentIndex === PAGES.length - 1;
 

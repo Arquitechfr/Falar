@@ -1,0 +1,145 @@
+name: Remote Android Build
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Falar — Build Android (dev + production)
+#
+# Secrets repo (Settings → Actions → Secrets) :
+#   EXPO_PUBLIC_API_URL    → URL du backend (ex: https://api.falar.app)
+#   EXPO_PUBLIC_SOCKET_URL → URL du socket server (ex: wss://api.falar.app)
+#
+# Keystore production (fichier JKS sur le runner self-hosted) :
+#   Variable : ANDROID_KEYSTORE_PATH (défaut /opt/falar/keys/keystore.jks)
+#   Secrets  : ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'Build profile'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - production
+      variant:
+        description: 'Gradle variant'
+        required: true
+        default: 'assembleDebug'
+        type: choice
+        options:
+          - assembleDebug
+          - assembleRelease
+          - bundleRelease
+
+jobs:
+  build:
+    runs-on: [self-hosted, android-build]
+
+    env:
+      APP_NAME: falar
+      MOBILE_DIR: frontend
+      TERM: dumb
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.configureondemand=true
+      EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
+      EXPO_PUBLIC_SOCKET_URL: ${{ secrets.EXPO_PUBLIC_SOCKET_URL }}
+      ANDROID_KEYSTORE_PATH: ${{ vars.ANDROID_KEYSTORE_PATH || '/opt/falar/keys/keystore.jks' }}
+
+    steps:
+      # ── 1. Validation des inputs ──────────────────────────────────────────
+      - name: Validate inputs
+        run: |
+          PROFILE="${{ github.event.inputs.profile }}"
+          VARIANT="${{ github.event.inputs.variant }}"
+
+          if [ "$PROFILE" = "development" ] && [ "$VARIANT" != "assembleDebug" ]; then
+            echo "❌ development profile only supports assembleDebug (got $VARIANT)"
+            exit 1
+          fi
+
+          if [ "$PROFILE" = "production" ] && [ "$VARIANT" = "assembleDebug" ]; then
+            echo "❌ production profile cannot use assembleDebug"
+            exit 1
+          fi
+
+          echo "✅ Valid combination: profile=$PROFILE, variant=$VARIANT"
+
+      # ── 2. Checkout ───────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          clean: true
+          fetch-depth: 0
+
+      # ── 3. pnpm + Node ────────────────────────────────────────────────────
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: ${{ env.MOBILE_DIR }}/pnpm-lock.yaml
+
+      # ── 4. Dépendances ────────────────────────────────────────────────────
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: ${{ env.MOBILE_DIR }}
+
+      # ── 5. Expo prebuild ──────────────────────────────────────────────────
+      - name: Expo prebuild (Android)
+        run: npx expo prebuild --clean -p android
+        working-directory: ${{ env.MOBILE_DIR }}
+
+      # ── 6. Cache Gradle ───────────────────────────────────────────────────
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ${{ env.MOBILE_DIR }}/android/.gradle
+          key: gradle-${{ runner.os }}-${{ hashFiles(format('{0}/android/gradle/wrapper/gradle-wrapper.properties', env.MOBILE_DIR), format('{0}/android/**/*.gradle*', env.MOBILE_DIR)) }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      # ── 7. Gradle build (production — signed) ─────────────────────────────
+      - name: Gradle build (production — signed)
+        if: github.event.inputs.profile == 'production'
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          cd ${{ env.MOBILE_DIR }}/android
+          KEYSTORE="${{ env.ANDROID_KEYSTORE_PATH }}"
+          ./gradlew ${{ github.event.inputs.variant }} \
+            -Pandroid.injected.signing.store.file="$KEYSTORE" \
+            -Pandroid.injected.signing.store.password="$ANDROID_KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$ANDROID_KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$ANDROID_KEY_PASSWORD"
+
+      # ── 8. Gradle build (development — debug) ─────────────────────────────
+      - name: Gradle build (development — debug)
+        if: github.event.inputs.profile == 'development'
+        run: |
+          cd ${{ env.MOBILE_DIR }}/android
+          ./gradlew ${{ github.event.inputs.variant }}
+
+      # ── 9. Upload artifact ────────────────────────────────────────────────
+      - name: Upload APK/AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: falar-${{ github.event.inputs.profile }}-${{ github.run_number }}
+          path: |
+            ${{ env.MOBILE_DIR }}/android/app/build/outputs/apk/**/*.apk
+            ${{ env.MOBILE_DIR }}/android/app/build/outputs/bundle/**/*.aab
+          if-no-files-found: error
+          retention-days: 30
+
+      # ── 10. Cleanup ───────────────────────────────────────────────────────
+      - name: Cleanup build outputs
+        if: always()
+        run: rm -rf ${{ env.MOBILE_DIR }}/android/app/build/outputs

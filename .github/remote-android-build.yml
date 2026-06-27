@@ -7,7 +7,7 @@ name: Remote Android Build
 #   EXPO_PUBLIC_API_URL    → URL du backend (ex: https://api.falar.app)
 #   EXPO_PUBLIC_SOCKET_URL → URL du socket server (ex: wss://api.falar.app)
 #
-# Keystore production (fichier JKS sur le runner self-hosted) :
+# Keystore production (optionnel pour l'instant — build non signé si absent) :
 #   Variable : ANDROID_KEYSTORE_PATH (défaut /opt/falar/keys/keystore.jks)
 #   Secrets  : ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
 # ─────────────────────────────────────────────────────────────────────────────
@@ -58,11 +58,6 @@ jobs:
             exit 1
           fi
 
-          if [ "$PROFILE" = "production" ] && [ "$VARIANT" = "assembleDebug" ]; then
-            echo "❌ production profile cannot use assembleDebug"
-            exit 1
-          fi
-
           echo "✅ Valid combination: profile=$PROFILE, variant=$VARIANT"
 
       # ── 2. Checkout ───────────────────────────────────────────────────────
@@ -105,30 +100,29 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      # ── 7. Gradle build (production — signed) ─────────────────────────────
-      - name: Gradle build (production — signed)
-        if: github.event.inputs.profile == 'production'
-        env:
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      # ── 7. Gradle build ─────────────────────────────────────────────────────
+      # Production : signé si keystore présent, sinon build non signé (debug signing)
+      # Development : toujours debug
+      - name: Gradle build
         run: |
           cd ${{ env.MOBILE_DIR }}/android
           KEYSTORE="${{ env.ANDROID_KEYSTORE_PATH }}"
-          ./gradlew ${{ github.event.inputs.variant }} \
-            -Pandroid.injected.signing.store.file="$KEYSTORE" \
-            -Pandroid.injected.signing.store.password="$ANDROID_KEYSTORE_PASSWORD" \
-            -Pandroid.injected.signing.key.alias="$ANDROID_KEY_ALIAS" \
-            -Pandroid.injected.signing.key.password="$ANDROID_KEY_PASSWORD"
 
-      # ── 8. Gradle build (development — debug) ─────────────────────────────
-      - name: Gradle build (development — debug)
-        if: github.event.inputs.profile == 'development'
-        run: |
-          cd ${{ env.MOBILE_DIR }}/android
-          ./gradlew ${{ github.event.inputs.variant }}
+          if [ "${{ github.event.inputs.profile }}" = "production" ] && [ -f "$KEYSTORE" ] && [ -n "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" ]; then
+            echo "🔐 Build production signé avec keystore: $KEYSTORE"
+            ./gradlew ${{ github.event.inputs.variant }} \
+              -Pandroid.injected.signing.store.file="$KEYSTORE" \
+              -Pandroid.injected.signing.store.password="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
+              -Pandroid.injected.signing.key.alias="${{ secrets.ANDROID_KEY_ALIAS }}" \
+              -Pandroid.injected.signing.key.password="${{ secrets.ANDROID_KEY_PASSWORD }}"
+          else
+            if [ "${{ github.event.inputs.profile }}" = "production" ]; then
+              echo "⚠️  Keystore non configuré — build production non signé (debug signing)"
+            fi
+            ./gradlew ${{ github.event.inputs.variant }}
+          fi
 
-      # ── 9. Upload artifact ────────────────────────────────────────────────
+      # ── 8. Upload artifact ────────────────────────────────────────────────
       - name: Upload APK/AAB artifact
         uses: actions/upload-artifact@v4
         with:
@@ -139,7 +133,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      # ── 10. Cleanup ───────────────────────────────────────────────────────
+      # ── 9. Cleanup ───────────────────────────────────────────────────────
       - name: Cleanup build outputs
         if: always()
         run: rm -rf ${{ env.MOBILE_DIR }}/android/app/build/outputs

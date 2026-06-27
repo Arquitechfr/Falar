@@ -16,4 +16,5 @@ export { Card, type CardProps, type CardVariant } from './Card';
 export { Badge, type BadgeProps, type BadgeVariant, type BadgeSize } from './Badge';
 export { Divider, type DividerProps } from './Divider';
 export { Loader, type LoaderProps } from './Loader';
+export { PhoneInput, type PhoneInputProps } from './PhoneInput';
 export * as Icons from './Icons';

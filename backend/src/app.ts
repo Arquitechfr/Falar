@@ -14,6 +14,9 @@ import authRoutes from './modules/auth/auth.routes.js';
 import usersRoutes from './modules/users/users.routes.js';
 import messagesRoutes from './modules/messages/messages.routes.js';
 import mediaRoutes from './modules/media/media.routes.js';
+import callsRoutes from './modules/calls/calls.routes.js';
+import notificationsRoutes from './modules/notifications/notifications.routes.js';
+import searchRoutes from './modules/search/search.routes.js';
 
 const app = express();
 
@@ -37,6 +40,9 @@ app.use('/auth', authRoutes);
 app.use('/users', usersRoutes);
 app.use('/messages', messagesRoutes);
 app.use('/media', mediaRoutes);
+app.use('/calls', callsRoutes);
+app.use('/notifications', notificationsRoutes);
+app.use('/search', searchRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {

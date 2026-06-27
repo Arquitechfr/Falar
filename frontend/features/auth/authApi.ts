@@ -5,6 +5,9 @@ export interface AuthUser {
   phone: string;
   publicKey: string;
   displayName: string;
+  avatarUrl?: string;
+  bio?: string;
+  username?: string;
 }
 
 export interface VerifyOtpResponse {

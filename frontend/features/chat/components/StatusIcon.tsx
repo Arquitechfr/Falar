@@ -1,18 +1,22 @@
-import { Text, View } from 'react-native';
+import { useTheme } from '@/hooks/useTheme';
+import { Clock, Check, CheckDouble, X } from '@/components/ui/Icons';
 import type { MessageStatus } from '../chatStore';
 
 export function StatusIcon({ status }: { status: MessageStatus }) {
+  const { colors } = useTheme();
+  const size = 14;
+
   if (status === 'sending') {
-    return <Text className="text-textSecondary text-xs">⏳</Text>;
+    return <Clock size={size} color={colors.textSecondary} />;
   }
   if (status === 'sent') {
-    return <Text className="text-textSecondary text-xs">✓</Text>;
+    return <Check size={size} color={colors.textSecondary} />;
   }
   if (status === 'delivered') {
-    return <Text className="text-textSecondary text-xs">✓✓</Text>;
+    return <CheckDouble size={size} color={colors.textSecondary} />;
   }
   if (status === 'read') {
-    return <Text className="text-statusRead text-xs">✓✓</Text>;
+    return <CheckDouble size={size} color={colors.statusRead} />;
   }
-  return <Text className="text-red-500 text-xs">✕</Text>;
+  return <X size={size} color={colors.danger} />;
 }

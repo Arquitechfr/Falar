@@ -5,6 +5,8 @@ const e164Regex = /^\+[1-9]\d{1,14}$/;
 export const updateMeSchema = z.object({
   displayName: z.string().min(1).max(50).optional(),
   avatarUrl: z.string().url().optional(),
+  bio: z.string().max(200).optional(),
+  username: z.string().min(3).max(30).optional(),
   deviceToken: z.string().min(1).optional(),
 });
 

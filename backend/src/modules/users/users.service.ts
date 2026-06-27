@@ -1,10 +1,26 @@
 import { User } from './user.model.js';
+import { Message } from '../messages/message.model.js';
 import type { UpdateMeInput } from './users.schema.js';
 
 export async function getMe(userId: string) {
   const user = await User.findById(userId);
   if (!user) return null;
   return user;
+}
+
+export async function getUserById(userId: string) {
+  const user = await User.findById(userId).lean();
+  if (!user) return null;
+  return {
+    id: user._id.toString(),
+    phone: user.phone,
+    displayName: user.displayName,
+    avatarUrl: user.avatarUrl,
+    bio: user.bio,
+    username: user.username,
+    publicKey: user.publicKey,
+    lastSeen: user.lastSeen,
+  };
 }
 
 export async function updateMe(userId: string, data: UpdateMeInput) {
@@ -20,6 +36,56 @@ export async function searchByPhone(phone: string) {
     phone: user.phone,
     displayName: user.displayName,
     avatarUrl: user.avatarUrl,
+    bio: user.bio,
+    username: user.username,
     publicKey: user.publicKey,
   };
+}
+
+export async function getContacts(userId: string) {
+  const messages = await Message.aggregate([
+    {
+      $match: {
+        $or: [{ senderId: userId }, { recipientId: userId }],
+      },
+    },
+    {
+      $group: {
+        _id: '$conversationId',
+        participantId: {
+          $first: {
+            $cond: [
+              { $eq: ['$senderId', userId] },
+              '$recipientId',
+              '$senderId',
+            ],
+          },
+        },
+        lastTimestamp: { $first: '$serverTimestamp' },
+      },
+    },
+    { $sort: { lastTimestamp: -1 } },
+  ]);
+
+  const participantIds = messages.map((m) => m.participantId);
+  const users = await User.find({ _id: { $in: participantIds } }).lean();
+
+  const userMap = new Map(users.map((u) => [u._id.toString(), u]));
+
+  return messages
+    .map((m) => {
+      const user = userMap.get(m.participantId.toString());
+      if (!user) return null;
+      return {
+        id: user._id.toString(),
+        phone: user.phone,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        bio: user.bio,
+        username: user.username,
+        publicKey: user.publicKey,
+        lastSeen: user.lastSeen,
+      };
+    })
+    .filter(Boolean);
 }

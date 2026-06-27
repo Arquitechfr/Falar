@@ -67,6 +67,52 @@ export function registerChatHandlers(chatNamespace: Namespace): void {
       }
     });
 
+    // WebRTC Call signaling
+    socket.on('call:offer', async (data: { callId: string; recipientId: string; sdp: unknown }) => {
+      const recipientSocketId = await redis.get(`socket:${data.recipientId}`);
+      if (recipientSocketId) {
+        chatNamespace.to(recipientSocketId).emit('call:offer', {
+          callId: data.callId,
+          callerId: userId,
+          sdp: data.sdp,
+        });
+      }
+    });
+
+    socket.on('call:answer', async (data: { callId: string; callerId: string; sdp: unknown }) => {
+      const callerSocketId = await redis.get(`socket:${data.callerId}`);
+      if (callerSocketId) {
+        chatNamespace.to(callerSocketId).emit('call:answer', {
+          callId: data.callId,
+          sdp: data.sdp,
+        });
+      }
+    });
+
+    socket.on('call:reject', async (data: { callId: string; callerId: string }) => {
+      const callerSocketId = await redis.get(`socket:${data.callerId}`);
+      if (callerSocketId) {
+        chatNamespace.to(callerSocketId).emit('call:reject', { callId: data.callId });
+      }
+    });
+
+    socket.on('call:ice-candidate', async (data: { recipientId: string; candidate: unknown }) => {
+      const recipientSocketId = await redis.get(`socket:${data.recipientId}`);
+      if (recipientSocketId) {
+        chatNamespace.to(recipientSocketId).emit('call:ice-candidate', {
+          callerId: userId,
+          candidate: data.candidate,
+        });
+      }
+    });
+
+    socket.on('call:end', async (data: { callId: string; recipientId: string }) => {
+      const recipientSocketId = await redis.get(`socket:${data.recipientId}`);
+      if (recipientSocketId) {
+        chatNamespace.to(recipientSocketId).emit('call:end', { callId: data.callId });
+      }
+    });
+
     // Disconnect
     socket.on('disconnect', async () => {
       await redis.srem('online_users', userId);

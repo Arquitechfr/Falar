@@ -1,38 +1,37 @@
-import { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-} from 'react-native';
+import { useState, useCallback } from 'react';
+import { View, Text, Pressable, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { sendOtp } from '@/features/auth/authApi';
-import { theme } from '@/constants/theme';
+import { useTheme } from '@/hooks/useTheme';
+import { useToast } from '@/components/ui/Toast';
+import { typography } from '@/constants/typography';
+import { spacing } from '@/constants/spacing';
+import { Button, Input, BottomSheet } from '@/components/ui';
+import { ChevronDown, Phone as PhoneIcon, Shield } from '@/components/ui/Icons';
 
 const COUNTRY_CODES = [
-  { code: '+33', label: '🇫🇷 +33' },
-  { code: '+32', label: '🇧🇪 +32' },
-  { code: '+41', label: '🇨🇭 +41' },
-  { code: '+1', label: '🇨🇦 +1' },
-  { code: '+44', label: '🇬🇧 +44' },
-  { code: '+49', label: '🇩🇪 +49' },
-  { code: '+39', label: '🇮🇹 +39' },
-  { code: '+34', label: '🇪🇸 +34' },
-  { code: '+31', label: '🇳🇱 +31' },
-  { code: '+212', label: '🇲🇦 +212' },
-  { code: '+213', label: '🇩🇿 +213' },
-  { code: '+221', label: '🇸🇳 +221' },
-  { code: '+225', label: '🇨🇮 +225' },
+  { code: '+33', label: 'France +33' },
+  { code: '+32', label: 'Belgique +32' },
+  { code: '+41', label: 'Suisse +41' },
+  { code: '+1', label: 'Canada/USA +1' },
+  { code: '+44', label: 'UK +44' },
+  { code: '+49', label: 'Allemagne +49' },
+  { code: '+39', label: 'Italie +39' },
+  { code: '+34', label: 'Espagne +34' },
+  { code: '+31', label: 'Pays-Bas +31' },
+  { code: '+212', label: 'Maroc +212' },
+  { code: '+213', label: 'Algérie +213' },
+  { code: '+221', label: 'Sénégal +221' },
+  { code: '+225', label: "Côte d'Ivoire +225" },
 ];
 
 const E164_REGEX = /^\+[1-9]\d{1,14}$/;
 
 export default function PhoneScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
+  const toast = useToast();
   const [countryCode, setCountryCode] = useState('+33');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,7 +42,7 @@ export default function PhoneScreen() {
 
   const handleSubmit = async () => {
     if (!isValid) {
-      Alert.alert('Erreur', 'Numéro invalide. Format attendu: +33612345678');
+      toast.show('Numéro invalide. Format attendu: +33612345678', 'error');
       return;
     }
 
@@ -56,71 +55,137 @@ export default function PhoneScreen() {
       });
     } catch (err) {
       const msg = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message;
-      Alert.alert('Erreur', msg || 'Échec de l\'envoi du code');
+      toast.show(msg || 'Échec de l\'envoi du code', 'error');
     } finally {
       setLoading(false);
     }
   };
 
+  const selectCountry = useCallback((code: string) => {
+    setCountryCode(code);
+    setShowPicker(false);
+  }, []);
+
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1 px-6"
+        style={{ flex: 1 }}
       >
-        <View className="flex-1 justify-center">
-          <Text className="text-3xl font-bold text-textPrimary mb-2">Falar</Text>
-          <Text className="text-textSecondary mb-8">
-            Entrez votre numéro de téléphone pour commencer
-          </Text>
-
-          <View className="flex-row gap-3 mb-4">
-            <TouchableOpacity
-              onPress={() => setShowPicker(!showPicker)}
-              className="bg-surface rounded-xl px-4 py-4 justify-center"
+        <ScrollView
+          contentContainerStyle={{ flex: 1, paddingHorizontal: spacing.lg, justifyContent: 'center' }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={{ alignItems: 'center', marginBottom: spacing.xxl }}>
+            <View
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: 36,
+                backgroundColor: colors.primary,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: spacing.lg,
+              }}
             >
-              <Text className="text-textPrimary text-base">{countryCode}</Text>
-            </TouchableOpacity>
-
-            <TextInput
-              className="flex-1 bg-surface rounded-xl px-4 py-4 text-textPrimary text-base"
-              placeholder="6 12 34 56 78"
-              placeholderTextColor={theme.textSecondary}
-              keyboardType="phone-pad"
-              value={phone}
-              onChangeText={setPhone}
-              autoCapitalize="none"
-            />
+              <PhoneIcon size={32} color="#FFFFFF" />
+            </View>
+            <Text style={{ ...typography.display, color: colors.textPrimary }}>Falar</Text>
+            <Text
+              style={{
+                ...typography.body,
+                color: colors.textSecondary,
+                textAlign: 'center',
+                marginTop: spacing.sm,
+              }}
+            >
+              Entrez votre numéro de téléphone pour commencer
+            </Text>
           </View>
 
-          {showPicker && (
-            <View className="bg-surface rounded-xl mb-4 max-h-48">
-              {COUNTRY_CODES.map((c) => (
-                <TouchableOpacity
-                  key={c.code}
-                  onPress={() => {
-                    setCountryCode(c.code);
-                    setShowPicker(false);
-                  }}
-                  className="px-4 py-3 border-b border-background"
-                >
-                  <Text className="text-textPrimary">{c.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
+          <View style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg }}>
+            <Pressable
+              onPress={() => setShowPicker(true)}
+              style={({ pressed }) => ({
+                height: 56,
+                borderRadius: 14,
+                backgroundColor: colors.card,
+                borderWidth: 1,
+                borderColor: colors.border,
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: spacing.md,
+                gap: 6,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <Text style={{ ...typography.bodyMedium, color: colors.textPrimary }}>
+                {countryCode}
+              </Text>
+              <ChevronDown size={16} color={colors.textSecondary} />
+            </Pressable>
 
-          <TouchableOpacity
+            <View style={{ flex: 1 }}>
+              <Input
+                value={phone}
+                onChangeText={setPhone}
+                placeholder="6 12 34 56 78"
+                keyboardType="phone-pad"
+                leftIcon={<PhoneIcon size={20} color={colors.textSecondary} />}
+              />
+            </View>
+          </View>
+
+          <Button
+            label={loading ? 'Envoi...' : 'Recevoir le code'}
             onPress={handleSubmit}
-            disabled={!isValid || loading}
-            className={`rounded-xl py-4 items-center ${isValid && !loading ? 'bg-primary' : 'bg-surface'}`}
+            loading={loading}
+            disabled={!isValid}
+            fullWidth
+          />
+
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              marginTop: spacing.xl,
+            }}
           >
-            <Text className="text-background font-semibold text-base">
-              {loading ? 'Envoi...' : 'Recevoir le code'}
+            <Shield size={14} color={colors.textSecondary} />
+            <Text style={{ ...typography.caption, color: colors.textSecondary }}>
+              Vos messages sont chiffrés de bout en bout
             </Text>
-          </TouchableOpacity>
-        </View>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
+
+      <BottomSheet visible={showPicker} onClose={() => setShowPicker(false)} snapPoint="60%">
+        <ScrollView>
+          {COUNTRY_CODES.map((c) => (
+            <Pressable
+              key={c.code}
+              onPress={() => selectCountry(c.code)}
+              style={({ pressed }) => ({
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingVertical: spacing.md,
+                paddingHorizontal: spacing.lg,
+                backgroundColor: pressed ? colors.secondaryBackground : 'transparent',
+              })}
+            >
+              <Text style={{ ...typography.bodyMedium, color: colors.textPrimary }}>
+                {c.label}
+              </Text>
+              {countryCode === c.code && (
+                <Text style={{ ...typography.bodyMedium, color: colors.primary }}>✓</Text>
+              )}
+            </Pressable>
+          ))}
+        </ScrollView>
+      </BottomSheet>
     </SafeAreaView>
   );
 }

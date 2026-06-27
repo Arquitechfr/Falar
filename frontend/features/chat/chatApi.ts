@@ -47,3 +47,7 @@ export async function updateMessageStatus(
 ): Promise<void> {
   await api.patch(`/messages/${messageId}/status`, { status });
 }
+
+export async function deleteMessage(messageId: string): Promise<void> {
+  await api.delete(`/messages/${messageId}`);
+}

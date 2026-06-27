@@ -1,60 +1,89 @@
-import { useEffect, useRef } from 'react';
-import { View, Animated, Easing } from 'react-native';
+import { useEffect } from 'react';
+import { View } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  withDelay,
+  cancelAnimation,
+  Easing,
+} from 'react-native-reanimated';
+import { useTheme } from '@/hooks/useTheme';
+import { spacing } from '@/constants/spacing';
 
-export function TypingIndicator() {
-  const dot1 = useRef(new Animated.Value(0.3)).current;
-  const dot2 = useRef(new Animated.Value(0.3)).current;
-  const dot3 = useRef(new Animated.Value(0.3)).current;
+const DOT_SIZE = 7;
+const DURATION = 500;
+const DELAY = 180;
+
+function TypingDot({ delay }: { delay: number }) {
+  const { colors } = useTheme();
+  const opacity = useSharedValue(0.3);
+  const translateY = useSharedValue(0);
 
   useEffect(() => {
-    const animate = (value: Animated.Value, delay: number) =>
-      Animated.loop(
-        Animated.sequence([
-          Animated.delay(delay),
-          Animated.timing(value, {
-            toValue: 1,
-            duration: 400,
-            easing: Easing.ease,
-            useNativeDriver: true,
-          }),
-          Animated.timing(value, {
-            toValue: 0.3,
-            duration: 400,
-            easing: Easing.ease,
-            useNativeDriver: true,
-          }),
-        ]),
-      );
-
-    const anim1 = animate(dot1, 0);
-    const anim2 = animate(dot2, 200);
-    const anim3 = animate(dot3, 400);
-
-    anim1.start();
-    anim2.start();
-    anim3.start();
+    opacity.value = withRepeat(
+      withSequence(
+        withDelay(delay, withTiming(1, { duration: DURATION, easing: Easing.inOut(Easing.ease) })),
+        withTiming(0.3, { duration: DURATION, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+    );
+    translateY.value = withRepeat(
+      withSequence(
+        withDelay(delay, withTiming(-3, { duration: DURATION, easing: Easing.inOut(Easing.ease) })),
+        withTiming(0, { duration: DURATION, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+    );
 
     return () => {
-      anim1.stop();
-      anim2.stop();
-      anim3.stop();
+      cancelAnimation(opacity);
+      cancelAnimation(translateY);
     };
-  }, [dot1, dot2, dot3]);
+  }, [opacity, translateY, delay]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
 
   return (
-    <View className="flex-row items-center gap-1 px-4 py-2">
-      <Animated.View
-        className="w-2 h-2 rounded-full bg-textSecondary"
-        style={{ opacity: dot1 }}
-      />
-      <Animated.View
-        className="w-2 h-2 rounded-full bg-textSecondary"
-        style={{ opacity: dot2 }}
-      />
-      <Animated.View
-        className="w-2 h-2 rounded-full bg-textSecondary"
-        style={{ opacity: dot3 }}
-      />
+    <Animated.View
+      style={[
+        {
+          width: DOT_SIZE,
+          height: DOT_SIZE,
+          borderRadius: DOT_SIZE / 2,
+          backgroundColor: colors.textSecondary,
+        },
+        animatedStyle,
+      ]}
+    />
+  );
+}
+
+export function TypingIndicator() {
+  const { colors } = useTheme();
+
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 4,
+          backgroundColor: colors.bubbleOther,
+          borderRadius: 14,
+          paddingHorizontal: spacing.sm + 2,
+          paddingVertical: spacing.sm + 2,
+        }}
+      >
+        <TypingDot delay={0} />
+        <TypingDot delay={DELAY} />
+        <TypingDot delay={DELAY * 2} />
+      </View>
     </View>
   );
 }

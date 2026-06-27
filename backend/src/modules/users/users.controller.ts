@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { updateMeSchema, searchUserSchema } from './users.schema.js';
-import { getMe, updateMe, searchByPhone } from './users.service.js';
+import { getMe, updateMe, searchByPhone, getUserById, getContacts } from './users.service.js';
 import type { AuthedRequest } from '../../middleware/auth.middleware.js';
 
 export async function getMeController(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
@@ -11,6 +11,28 @@ export async function getMeController(req: AuthedRequest, res: Response, next: N
       return;
     }
     res.json(user);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getUserController(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const user = await getUserById(req.params.userId);
+    if (!user) {
+      res.status(404).json({ error: { code: 'NOT_FOUND', message: 'User not found' } });
+      return;
+    }
+    res.json(user);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getContactsController(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const contacts = await getContacts(req.user!.id);
+    res.json({ contacts });
   } catch (err) {
     next(err);
   }

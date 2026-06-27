@@ -1,24 +1,28 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { View, Text } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { getAccessToken } from '@/services/api';
 import { connect, disconnect } from '@/services/socket';
-import { useAuthStore } from '@/features/auth/authStore';
-import { theme } from '@/constants/theme';
+import { useTheme } from '@/hooks/useTheme';
+import { typography } from '@/constants/typography';
+import { BottomTabBar } from '@/components/ui/BottomTabBar';
+import { MessageCircle, User } from '@/components/ui/Icons';
+import { useIncomingCall } from '@/features/calls/useIncomingCall';
 
 export default function MainLayout() {
-  const user = useAuthStore((s) => s.user);
-  const [socketConnected, setSocketConnected] = useState(false);
+  const { colors } = useTheme();
   const netInfo = useNetInfo();
+
+  useIncomingCall();
 
   useEffect(() => {
     (async () => {
       const token = await getAccessToken();
       if (token) {
         const socket = connect(token);
-        socket.on('connect', () => setSocketConnected(true));
-        socket.on('disconnect', () => setSocketConnected(false));
+        socket.on('connect', () => {});
+        socket.on('disconnect', () => {});
       }
     })();
 
@@ -30,27 +34,31 @@ export default function MainLayout() {
   const isOffline = !netInfo.isConnected;
 
   return (
-    <View className="flex-1 bg-background">
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       {isOffline && (
-        <View className="bg-yellow-600 py-2 items-center">
-          <Text className="text-white text-sm">Pas de connexion</Text>
+        <View style={{ backgroundColor: colors.warning, paddingVertical: 6, alignItems: 'center' }}>
+          <Text style={{ ...typography.captionMedium, color: '#FFFFFF' }}>Pas de connexion</Text>
         </View>
       )}
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarStyle: { backgroundColor: theme.surface, borderTopColor: theme.background },
-          tabBarActiveTintColor: theme.primary,
-          tabBarInactiveTintColor: theme.textSecondary,
         }}
+        tabBar={(props) => <BottomTabBar {...props} />}
       >
         <Tabs.Screen
           name="conversations"
-          options={{ title: 'Conversations' }}
+          options={{
+            title: 'Messages',
+            tabBarIcon: ({ color, size }) => <MessageCircle size={size} color={color} />,
+          }}
         />
         <Tabs.Screen
           name="profile"
-          options={{ title: 'Profil' }}
+          options={{
+            title: 'Profil',
+            tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
+          }}
         />
       </Tabs>
     </View>

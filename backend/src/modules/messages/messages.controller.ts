@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { sendMessageSchema, getMessagesSchema, updateStatusSchema } from './messages.schema.js';
-import { sendMessage, getMessages, updateMessageStatus, verifyConversationAccess, MessageError } from './messages.service.js';
+import { sendMessage, getMessages, updateMessageStatus, deleteMessage, verifyConversationAccess, MessageError } from './messages.service.js';
 import { computeConversationId } from '../../utils/conversationId.js';
 import type { AuthedRequest } from '../../middleware/auth.middleware.js';
 import type { Namespace } from 'socket.io';
@@ -61,6 +61,20 @@ export async function updateStatusController(req: AuthedRequest, res: Response, 
     const { messageId } = req.params;
     const { status } = updateStatusSchema.parse(req.body);
     await updateMessageStatus(messageId, req.user!.id, status, chatNamespace);
+    res.json({ success: true });
+  } catch (err) {
+    if (err instanceof MessageError) {
+      res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
+      return;
+    }
+    next(err);
+  }
+}
+
+export async function deleteMessageController(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { messageId } = req.params;
+    await deleteMessage(messageId, req.user!.id);
     res.json({ success: true });
   } catch (err) {
     if (err instanceof MessageError) {

@@ -111,6 +111,19 @@ export async function updateMessageStatus(
   }
 }
 
+export async function deleteMessage(messageId: string, userId: string): Promise<void> {
+  const message = await Message.findById(messageId);
+  if (!message) {
+    throw new MessageError('NOT_FOUND', 'Message not found', 404);
+  }
+
+  if (message.senderId.toString() !== userId) {
+    throw new MessageError('FORBIDDEN', 'Only the sender can delete a message', 403);
+  }
+
+  await Message.findByIdAndDelete(messageId);
+}
+
 export function verifyConversationAccess(conversationId: string, userIdA: string, userIdB: string): boolean {
   return isParticipant(conversationId, userIdA, userIdB);
 }

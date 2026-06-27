@@ -52,6 +52,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web"
   },
+  "packageManager": "pnpm@10.33.2",
   "private": true,
   "expo": {
     "doctor": {

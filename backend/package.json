@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "Falar messaging backend — E2E encrypted, server never sees message content",
   "type": "module",
-  "main": "src/app.ts",
+  "main": "dist/app.js",
   "scripts": {
     "dev": "tsx watch --env-file=.env src/app.ts",
-    "start": "tsx --env-file=.env src/app.ts",
+    "build": "tsc",
+    "start": "node --env-file=.env dist/app.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -33,6 +34,7 @@
     "@types/multer": "^1.4.12",
     "@types/node": "^22.10.7",
     "tsx": "^4.22.4",
+    "typescript": "^5.7.3",
     "vitest": "^3.0.5"
   }
 }

@@ -2,8 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'falar-backend',
-      script: 'node_modules/tsx/dist/cli.mjs',
-      args: 'src/app.ts',
+      script: 'dist/app.js',
       instances: 1,
       autorestart: true,
       watch: false,

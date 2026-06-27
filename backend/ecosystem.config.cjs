@@ -3,6 +3,7 @@ module.exports = {
     {
       name: 'falar-backend',
       script: 'dist/app.js',
+      node_args: '--env-file=.env',
       instances: 1,
       autorestart: true,
       watch: false,

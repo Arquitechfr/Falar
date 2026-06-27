@@ -1,4 +1,4 @@
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
 import { env } from './env.js';
 
 export const redis = new Redis({
@@ -13,6 +13,6 @@ redis.on('connect', () => {
   console.log('[Redis] Connected');
 });
 
-redis.on('error', (err) => {
+redis.on('error', (err: Error) => {
   console.error('[Redis] Error:', err.message);
 });

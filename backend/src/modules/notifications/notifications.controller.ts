@@ -14,7 +14,7 @@ export async function getNotificationsController(req: AuthedRequest, res: Respon
 
 export async function markAsReadController(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    await markAsRead(req.params.id, req.user!.id);
+    await markAsRead(String(req.params.id), req.user!.id);
     res.json({ success: true });
   } catch (err) {
     next(err);

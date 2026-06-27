@@ -1,12 +1,12 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
 
 export type CallType = 'audio' | 'video';
 export type CallStatus = 'initiated' | 'ringing' | 'accepted' | 'rejected' | 'ended' | 'missed';
 
 export interface ICall {
   _id: string;
-  callerId: string;
-  recipientId: string;
+  callerId: Types.ObjectId;
+  recipientId: Types.ObjectId;
   conversationId: string;
   type: CallType;
   status: CallStatus;

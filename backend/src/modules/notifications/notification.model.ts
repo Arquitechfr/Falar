@@ -1,10 +1,10 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
 
 export type NotificationType = 'message' | 'call' | 'contact' | 'system';
 
 export interface INotification {
   _id: string;
-  userId: string;
+  userId: Types.ObjectId;
   type: NotificationType;
   title: string;
   body: string;

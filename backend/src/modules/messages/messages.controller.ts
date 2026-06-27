@@ -60,7 +60,7 @@ export async function updateStatusController(req: AuthedRequest, res: Response, 
   try {
     const { messageId } = req.params;
     const { status } = updateStatusSchema.parse(req.body);
-    await updateMessageStatus(messageId, req.user!.id, status, chatNamespace);
+    await updateMessageStatus(String(messageId), req.user!.id, status, chatNamespace);
     res.json({ success: true });
   } catch (err) {
     if (err instanceof MessageError) {
@@ -74,7 +74,7 @@ export async function updateStatusController(req: AuthedRequest, res: Response, 
 export async function deleteMessageController(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
   try {
     const { messageId } = req.params;
-    await deleteMessage(messageId, req.user!.id);
+    await deleteMessage(String(messageId), req.user!.id);
     res.json({ success: true });
   } catch (err) {
     if (err instanceof MessageError) {

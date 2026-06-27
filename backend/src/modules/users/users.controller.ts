@@ -18,7 +18,7 @@ export async function getMeController(req: AuthedRequest, res: Response, next: N
 
 export async function getUserController(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    const user = await getUserById(req.params.userId);
+    const user = await getUserById(String(req.params.userId));
     if (!user) {
       res.status(404).json({ error: { code: 'NOT_FOUND', message: 'User not found' } });
       return;

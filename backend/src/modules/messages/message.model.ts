@@ -1,12 +1,12 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
 
 export type MessageStatus = 'sent' | 'delivered' | 'read';
 
 export interface IMessage {
   _id: string;
   conversationId: string;
-  senderId: string;
-  recipientId: string;
+  senderId: Types.ObjectId;
+  recipientId: Types.ObjectId;
   encryptedPayload: string;
   nonce: string;
   mediaUrl: string;

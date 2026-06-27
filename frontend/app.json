@@ -7,19 +7,13 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "scheme": "falar",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#C96B4A"
-    },
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
         "NSCameraUsageDescription": "Falar utilise la caméra pour les appels vidéo.",
         "NSMicrophoneUsageDescription": "Falar utilise le microphone pour les appels audio et vidéo.",
         "NSLocalNetworkUsageDescription": "Falar utilise le réseau local pour les appels P2P."
-      },
-      "broadcasting": true
+      }
     },
     "android": {
       "package": "com.falar.app",
@@ -50,7 +44,14 @@
           "color": "#25D366"
         }
       ],
-      "expo-splash-screen",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#C96B4A"
+        }
+      ],
       [
         "expo-dev-client",
         {

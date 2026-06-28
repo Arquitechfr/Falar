@@ -42,3 +42,6 @@ yarn-error.*
 /android
 frontend/credentials.json
 frontend/google-services.json
+
+# APK files
+*.apk

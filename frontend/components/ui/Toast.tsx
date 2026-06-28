@@ -105,7 +105,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              gap: spacing.sm,
               backgroundColor: colors.card,
               borderRadius: radii.md,
               paddingHorizontal: spacing.md,
@@ -113,7 +112,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               ...shadows.md,
             }}
           >
-            <Icon size={22} color={iconColor[toast.type]} />
+            <Icon size={22} color={iconColor[toast.type]} style={{ marginRight: spacing.sm }} />
             <Text
               style={{
                 ...typography.bodyMedium,

@@ -60,13 +60,12 @@ export function SearchBar({
           backgroundColor: colors.card,
           borderWidth: 1,
           paddingHorizontal: spacing.md,
-          gap: spacing.sm,
         },
         animatedStyle,
         style,
       ]}
     >
-      <Search size={18} color={colors.textSecondary} />
+      <Search size={18} color={colors.textSecondary} style={{ marginRight: spacing.sm }} />
       <TextInput
         style={textInputStyle}
         value={value}

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { sendOtp } from '@/features/auth/authApi';
@@ -8,7 +8,7 @@ import { useToast } from '@/components/ui/Toast';
 import { typography } from '@/constants/typography';
 import { spacing } from '@/constants/spacing';
 import { Button, PhoneInput } from '@/components/ui';
-import { Phone as PhoneIcon, Shield } from '@/components/ui/Icons';
+import { Shield } from '@/components/ui/Icons';
 import type { Country } from '@/constants/countries';
 
 export default function PhoneScreen() {
@@ -51,20 +51,15 @@ export default function PhoneScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={{ alignItems: 'center', marginBottom: spacing.xxl }}>
-            <View
+            <Image
+              source={require('@/assets/texte_logo.png')}
               style={{
-                width: 72,
-                height: 72,
-                borderRadius: 36,
-                backgroundColor: colors.primary,
-                alignItems: 'center',
-                justifyContent: 'center',
+                width: 180,
+                height: 64,
+                resizeMode: 'contain',
                 marginBottom: spacing.lg,
               }}
-            >
-              <PhoneIcon size={32} color="#FFFFFF" />
-            </View>
-            <Text style={{ ...typography.display, color: colors.textPrimary }}>Falar</Text>
+            />
             <Text
               style={{
                 ...typography.body,
@@ -97,11 +92,10 @@ export default function PhoneScreen() {
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 6,
               marginTop: spacing.xl,
             }}
           >
-            <Shield size={14} color={colors.textSecondary} />
+            <Shield size={14} color={colors.textSecondary} style={{ marginRight: 6 }} />
             <Text style={{ ...typography.caption, color: colors.textSecondary }}>
               Vos messages sont chiffrés de bout en bout
             </Text>

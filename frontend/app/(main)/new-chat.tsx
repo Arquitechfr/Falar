@@ -1,24 +1,24 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { View, Text, Pressable, SectionList, RefreshControl, Share } from 'react-native';
+import { View, Text, SectionList, RefreshControl, Share } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as Haptics from 'expo-haptics';
 import { SafeScreen } from '@/components/SafeScreen';
 import { useTheme } from '@/hooks/useTheme';
 import { useToast } from '@/components/ui/Toast';
 import { typography } from '@/constants/typography';
 import { spacing } from '@/constants/spacing';
-import { ScreenHeader, SearchBar, Avatar, EmptyState, Skeleton, Badge } from '@/components/ui';
+import { ScreenHeader, SearchBar, EmptyState, Skeleton } from '@/components/ui';
 import { useContacts } from '@/features/contacts/useContacts';
+import { ContactItem } from '@/features/contacts/components/ContactItem';
 import type { SyncedContact } from '@/features/contacts/contactsApi';
 import { computeConversationId } from '@/utils/conversationId';
 import { useAuthStore } from '@/features/auth/authStore';
-import { Search as SearchIcon, UserPlus, Share as ShareIcon } from '@/components/ui/Icons';
+import { Search as SearchIcon, UserPlus } from '@/components/ui/Icons';
 
 export default function NewChatScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const toast = useToast();
-  const { contacts, isLoading, permissionDenied, syncDeviceContacts, loadStoredContacts } = useContacts();
+  const { contacts, isLoading, permissionDenied, syncDeviceContacts, initDeviceContacts, loadStoredContacts } = useContacts();
   const [search, setSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [initialized, setInitialized] = useState(false);
@@ -27,13 +27,14 @@ export default function NewChatScreen() {
     (async () => {
       try {
         await loadStoredContacts();
+        await initDeviceContacts();
       } catch {
         // silent
       } finally {
         setInitialized(true);
       }
     })();
-  }, [loadStoredContacts]);
+  }, [loadStoredContacts, initDeviceContacts]);
 
   const handleSync = useCallback(async () => {
     setRefreshing(true);
@@ -77,7 +78,6 @@ export default function NewChatScreen() {
 
   const handleContactPress = useCallback((contact: SyncedContact) => {
     if (!contact.isMember || !contact.memberId || !contact.publicKey) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const conversationId = computeConversationId(
       useAuthStore.getState().user?.id || '',
       contact.memberId,
@@ -93,8 +93,7 @@ export default function NewChatScreen() {
     });
   }, [router]);
 
-  const handleInvite = useCallback(async (contact: SyncedContact) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  const handleInvite = useCallback(async () => {
     try {
       await Share.share({
         message: `Rejoins-moi sur Falar ! Télécharge l'app : https://falar.app`,
@@ -113,8 +112,8 @@ export default function NewChatScreen() {
         </View>
         <View style={{ paddingTop: spacing.md, gap: spacing.sm, paddingHorizontal: spacing.lg }}>
           {Array.from({ length: 8 }).map((_, i) => (
-            <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 }}>
-              <Skeleton width={48} height={48} radius={24} />
+            <View key={i} style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Skeleton width={48} height={48} radius={24} style={{ marginRight: spacing.sm + 2 }} />
               <View style={{ gap: 6, flex: 1 }}>
                 <Skeleton width="60%" height={16} radius={8} />
                 <Skeleton width="40%" height={14} radius={7} />
@@ -160,59 +159,11 @@ export default function NewChatScreen() {
       </View>
 
       <SectionList
+        style={{ flex: 1 }}
         sections={sections}
         keyExtractor={(item, index) => `${item.contactName}-${index}`}
         renderItem={({ item }) => (
-          <Pressable
-            onPress={() => item.isMember ? handleContactPress(item) : handleInvite(item)}
-            style={({ pressed }) => ({
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingHorizontal: spacing.lg,
-              paddingVertical: spacing.sm + 2,
-              gap: spacing.sm + 2,
-              backgroundColor: pressed ? colors.secondaryBackground : 'transparent',
-            })}
-          >
-            <Avatar
-              name={item.displayName || item.contactName}
-              size={48}
-              avatarUrl={item.avatarUrl || undefined}
-            />
-            <View style={{ flex: 1 }}>
-              <Text style={{ ...typography.subtitle, color: colors.textPrimary }} numberOfLines={1}>
-                {item.contactName}
-              </Text>
-              {item.isMember && item.displayName && item.displayName !== item.contactName && (
-                <Text style={{ ...typography.caption, color: colors.textSecondary }} numberOfLines={1}>
-                  {item.displayName}
-                </Text>
-              )}
-              {item.isMember && item.username && (
-                <Text style={{ ...typography.caption, color: colors.textSecondary }}>
-                  @{item.username}
-                </Text>
-              )}
-            </View>
-            {item.isMember ? (
-              <Badge label="Membre" variant="success" size="sm" />
-            ) : (
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 4,
-                paddingHorizontal: 10,
-                paddingVertical: 6,
-                backgroundColor: colors.primary,
-                borderRadius: 16,
-              }}>
-                <ShareIcon size={14} color="#FFFFFF" />
-                <Text style={{ ...typography.micro, color: '#FFFFFF', fontWeight: '600' }}>
-                  Inviter
-                </Text>
-              </View>
-            )}
-          </Pressable>
+          <ContactItem contact={item} onPress={handleContactPress} onInvite={handleInvite} />
         )}
         renderSectionHeader={({ section: { title } }) => (
           <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: 4, backgroundColor: colors.background }}>

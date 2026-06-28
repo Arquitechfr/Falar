@@ -68,20 +68,19 @@ export function TypingIndicator() {
   const { colors } = useTheme();
 
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}>
       <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          gap: 4,
           backgroundColor: colors.bubbleOther,
           borderRadius: 14,
           paddingHorizontal: spacing.sm + 2,
           paddingVertical: spacing.sm + 2,
         }}
       >
-        <TypingDot delay={0} />
-        <TypingDot delay={DELAY} />
+        <View style={{ marginRight: 4 }}><TypingDot delay={0} /></View>
+        <View style={{ marginRight: 4 }}><TypingDot delay={DELAY} /></View>
         <TypingDot delay={DELAY * 2} />
       </View>
     </View>

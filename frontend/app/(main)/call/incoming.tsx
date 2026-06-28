@@ -140,8 +140,8 @@ export default function IncomingCallScreen() {
 
         {/* Bottom: Accept / Reject */}
         <View style={{ alignItems: 'center', gap: spacing.lg, paddingBottom: spacing.xl }}>
-          <View style={{ flexDirection: 'row', gap: 60 }}>
-            <View style={{ alignItems: 'center', gap: spacing.sm }}>
+          <View style={{ flexDirection: 'row' }}>
+            <View style={{ alignItems: 'center', gap: spacing.sm, marginRight: 60 }}>
               <Pressable
                 onPress={handleReject}
                 style={{

@@ -145,7 +145,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Action buttons row */}
-        <View style={{ flexDirection: 'row', paddingHorizontal: spacing.lg, gap: spacing.sm, marginBottom: spacing.lg }}>
+        <View style={{ flexDirection: 'row', paddingHorizontal: spacing.lg, marginBottom: spacing.lg }}>
           <Pressable
             onPress={() => setShowQR(true)}
             style={({ pressed }) => ({
@@ -153,14 +153,14 @@ export default function ProfileScreen() {
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 6,
               backgroundColor: colors.card,
               borderRadius: radii.md,
               paddingVertical: spacing.sm + 2,
+              marginRight: spacing.sm,
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <QrCode size={18} color={colors.primary} />
+            <QrCode size={18} color={colors.primary} style={{ marginRight: 6 }} />
             <Text style={{ ...typography.captionMedium, color: colors.primary }}>QR Code</Text>
           </Pressable>
           <Pressable
@@ -170,14 +170,13 @@ export default function ProfileScreen() {
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 6,
               backgroundColor: colors.card,
               borderRadius: radii.md,
               paddingVertical: spacing.sm + 2,
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <ShareIcon size={18} color={colors.primary} />
+            <ShareIcon size={18} color={colors.primary} style={{ marginRight: 6 }} />
             <Text style={{ ...typography.captionMedium, color: colors.primary }}>Partager</Text>
           </Pressable>
         </View>
@@ -186,8 +185,8 @@ export default function ProfileScreen() {
         <View style={{ paddingHorizontal: spacing.lg, gap: spacing.md }}>
           {/* Phone */}
           <View style={{ backgroundColor: colors.card, borderRadius: radii.md, padding: spacing.md, gap: spacing.sm }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-              <Phone size={18} color={colors.textSecondary} />
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Phone size={18} color={colors.textSecondary} style={{ marginRight: spacing.sm }} />
               <Text style={{ ...typography.captionMedium, color: colors.textSecondary }}>Téléphone</Text>
             </View>
             <Text style={{ ...typography.body, color: colors.textPrimary }}>{user?.phone}</Text>
@@ -196,13 +195,13 @@ export default function ProfileScreen() {
           {/* Display Name */}
           <View style={{ backgroundColor: colors.card, borderRadius: radii.md, padding: spacing.md, gap: spacing.sm }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                <User size={18} color={colors.textSecondary} />
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <User size={18} color={colors.textSecondary} style={{ marginRight: spacing.sm }} />
                 <Text style={{ ...typography.captionMedium, color: colors.textSecondary }}>Nom d'affichage</Text>
               </View>
               {editingField !== 'name' && (
-                <Pressable onPress={() => setEditingField('name')} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <Edit size={14} color={colors.primary} />
+                <Pressable onPress={() => setEditingField('name')} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Edit size={14} color={colors.primary} style={{ marginRight: 4 }} />
                   <Text style={{ ...typography.captionMedium, color: colors.primary }}>Modifier</Text>
                 </Pressable>
               )}
@@ -210,8 +209,10 @@ export default function ProfileScreen() {
             {editingField === 'name' ? (
               <View style={{ gap: spacing.sm }}>
                 <Input value={displayName} onChangeText={setDisplayName} autoFocus returnKeyType="done" onSubmitEditing={() => handleSave('name')} />
-                <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-                  <Button label="Annuler" onPress={cancelEdit} variant="secondary" size="md" />
+                <View style={{ flexDirection: 'row' }}>
+                  <View style={{ marginRight: spacing.sm }}>
+                    <Button label="Annuler" onPress={cancelEdit} variant="secondary" size="md" />
+                  </View>
                   <Button label={saving ? '...' : 'Enregistrer'} onPress={() => handleSave('name')} loading={saving} size="md" />
                 </View>
               </View>
@@ -223,12 +224,12 @@ export default function ProfileScreen() {
           {/* Username */}
           <View style={{ backgroundColor: colors.card, borderRadius: radii.md, padding: spacing.md, gap: spacing.sm }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Text style={{ ...typography.captionMedium, color: colors.textSecondary }}>Pseudo</Text>
               </View>
               {editingField !== 'username' && (
-                <Pressable onPress={() => setEditingField('username')} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <Edit size={14} color={colors.primary} />
+                <Pressable onPress={() => setEditingField('username')} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Edit size={14} color={colors.primary} style={{ marginRight: 4 }} />
                   <Text style={{ ...typography.captionMedium, color: colors.primary }}>Modifier</Text>
                 </Pressable>
               )}
@@ -236,8 +237,10 @@ export default function ProfileScreen() {
             {editingField === 'username' ? (
               <View style={{ gap: spacing.sm }}>
                 <Input value={username} onChangeText={setUsername} autoFocus placeholder="mon_pseudo" returnKeyType="done" onSubmitEditing={() => handleSave('username')} />
-                <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-                  <Button label="Annuler" onPress={cancelEdit} variant="secondary" size="md" />
+                <View style={{ flexDirection: 'row' }}>
+                  <View style={{ marginRight: spacing.sm }}>
+                    <Button label="Annuler" onPress={cancelEdit} variant="secondary" size="md" />
+                  </View>
                   <Button label={saving ? '...' : 'Enregistrer'} onPress={() => handleSave('username')} loading={saving} size="md" />
                 </View>
               </View>
@@ -253,8 +256,8 @@ export default function ProfileScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <Text style={{ ...typography.captionMedium, color: colors.textSecondary }}>Bio</Text>
               {editingField !== 'bio' && (
-                <Pressable onPress={() => setEditingField('bio')} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <Edit size={14} color={colors.primary} />
+                <Pressable onPress={() => setEditingField('bio')} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Edit size={14} color={colors.primary} style={{ marginRight: 4 }} />
                   <Text style={{ ...typography.captionMedium, color: colors.primary }}>Modifier</Text>
                 </Pressable>
               )}
@@ -262,8 +265,10 @@ export default function ProfileScreen() {
             {editingField === 'bio' ? (
               <View style={{ gap: spacing.sm }}>
                 <Input value={bio} onChangeText={setBio} autoFocus placeholder="Quelques mots sur vous..." returnKeyType="done" onSubmitEditing={() => handleSave('bio')} />
-                <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-                  <Button label="Annuler" onPress={cancelEdit} variant="secondary" size="md" />
+                <View style={{ flexDirection: 'row' }}>
+                  <View style={{ marginRight: spacing.sm }}>
+                    <Button label="Annuler" onPress={cancelEdit} variant="secondary" size="md" />
+                  </View>
                   <Button label={saving ? '...' : 'Enregistrer'} onPress={() => handleSave('bio')} loading={saving} size="md" />
                 </View>
               </View>
@@ -275,8 +280,8 @@ export default function ProfileScreen() {
           </View>
 
           {/* Encryption */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.card, borderRadius: radii.md, padding: spacing.md }}>
-            <Shield size={18} color={colors.success} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: radii.md, padding: spacing.md }}>
+            <Shield size={18} color={colors.success} style={{ marginRight: spacing.sm }} />
             <Text style={{ ...typography.caption, color: colors.textSecondary, flex: 1 }}>
               Vos messages sont chiffrés de bout en bout. Vos clés ne quittent jamais votre appareil.
             </Text>
@@ -288,14 +293,13 @@ export default function ProfileScreen() {
             style={({ pressed }) => ({
               flexDirection: 'row',
               alignItems: 'center',
-              gap: spacing.sm,
               backgroundColor: colors.card,
               borderRadius: radii.md,
               padding: spacing.md,
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginRight: spacing.sm }}>
               <SettingsIcon size={18} color={colors.textSecondary} />
             </View>
             <Text style={{ ...typography.body, color: colors.textPrimary, flex: 1 }}>Paramètres</Text>
@@ -310,14 +314,13 @@ export default function ProfileScreen() {
             style={({ pressed }) => ({
               flexDirection: 'row',
               alignItems: 'center',
-              gap: spacing.sm,
               backgroundColor: colors.card,
               borderRadius: radii.md,
               padding: spacing.md,
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginRight: spacing.sm }}>
               <Bell size={18} color={colors.textSecondary} />
             </View>
             <Text style={{ ...typography.body, color: colors.textPrimary, flex: 1 }}>Notifications</Text>
@@ -333,7 +336,6 @@ export default function ProfileScreen() {
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: spacing.sm,
               backgroundColor: colors.card,
               borderRadius: radii.md,
               padding: spacing.md,
@@ -341,7 +343,7 @@ export default function ProfileScreen() {
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginRight: spacing.sm }}>
               <LogOut size={18} color={colors.danger} />
             </View>
             <Text style={{ ...typography.bodyMedium, color: colors.danger }}>Se déconnecter</Text>

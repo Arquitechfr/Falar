@@ -32,6 +32,7 @@ export function PhoneInput({
   const [nationalNumber, setNationalNumber] = useState('');
   const [showPicker, setShowPicker] = useState(false);
   const [search, setSearch] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   const filteredCountries = useMemo(() => {
@@ -91,7 +92,13 @@ export function PhoneInput({
         style={[
           {
             flexDirection: 'row',
-            gap: spacing.sm,
+            alignItems: 'center',
+            height: 56,
+            borderRadius: radii.md,
+            backgroundColor: colors.card,
+            borderWidth: 1,
+            borderColor: isFocused ? colors.primary : colors.border,
+            paddingHorizontal: spacing.md,
           },
           style,
         ]}
@@ -100,47 +107,61 @@ export function PhoneInput({
         <Pressable
           onPress={() => setShowPicker(true)}
           style={({ pressed }) => ({
-            height: 56,
-            borderRadius: radii.md,
-            backgroundColor: colors.card,
-            borderWidth: 1,
-            borderColor: colors.border,
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: spacing.md,
-            gap: 6,
             opacity: pressed ? 0.7 : 1,
           })}
         >
-          <Text style={{ fontSize: 22 }}>{country.flag}</Text>
-          <Text style={{ ...typography.bodyMedium, color: colors.textPrimary }}>
-            {country.dialCode}
-          </Text>
-          <ChevronDown size={14} color={colors.textSecondary} />
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              flexShrink: 0,
+              minWidth: 90,
+            }}
+          >
+            <Text style={{ fontSize: 20, marginRight: 4 }}>{country.flag}</Text>
+            <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={{
+                ...typography.bodyMedium,
+                color: colors.textPrimary,
+                marginRight: 4,
+              }}
+            >
+              {country.dialCode}
+            </Text>
+            <ChevronDown size={14} color={colors.textSecondary} />
+          </View>
         </Pressable>
 
+        {/* Divider */}
+        <View
+          style={{
+            width: 1,
+            height: 24,
+            backgroundColor: colors.border,
+            marginHorizontal: spacing.sm,
+          }}
+        />
+
         {/* Phone number input */}
-        <View style={{ flex: 1 }}>
-          <TextInput
-            ref={inputRef}
-            value={nationalNumber}
-            onChangeText={handleTextChange}
-            placeholder={country.format}
-            placeholderTextColor={colors.textSecondary}
-            keyboardType="phone-pad"
-            autoCorrect={false}
-            style={{
-              height: 56,
-              borderRadius: radii.md,
-              backgroundColor: colors.card,
-              borderWidth: 1,
-              borderColor: colors.border,
-              paddingHorizontal: spacing.md,
-              ...typography.body,
-              color: colors.textPrimary,
-            }}
-          />
-        </View>
+        <TextInput
+          ref={inputRef}
+          value={nationalNumber}
+          onChangeText={handleTextChange}
+          placeholder={country.format}
+          placeholderTextColor={colors.textSecondary}
+          keyboardType="phone-pad"
+          autoCorrect={false}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          style={{
+            flex: 1,
+            height: 56,
+            ...typography.body,
+            color: colors.textPrimary,
+          }}
+        />
       </View>
 
       {/* Country picker bottom sheet */}
@@ -153,14 +174,13 @@ export function PhoneInput({
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              gap: spacing.sm,
               backgroundColor: colors.secondaryBackground,
               borderRadius: radii.md,
               paddingHorizontal: spacing.md,
               height: 44,
             }}
           >
-            <SearchIcon size={18} color={colors.textSecondary} />
+            <SearchIcon size={18} color={colors.textSecondary} style={{ marginRight: spacing.sm }} />
             <TextInput
               value={search}
               onChangeText={setSearch}
@@ -173,29 +193,43 @@ export function PhoneInput({
         </View>
 
         <ScrollView keyboardShouldPersistTaps="handled">
-          {filteredCountries.map((item, index) => (
+          {filteredCountries.map((item) => (
             <Pressable
               key={item.iso2}
               onPress={() => handleSelectCountry(item)}
               style={({ pressed }) => ({
-                flexDirection: 'row',
-                alignItems: 'center',
                 paddingVertical: spacing.md,
                 paddingHorizontal: spacing.lg,
-                gap: spacing.md,
                 backgroundColor: pressed ? colors.secondaryBackground : 'transparent',
               })}
             >
-              <Text style={{ fontSize: 24 }}>{item.flag}</Text>
-              <Text style={{ ...typography.body, color: colors.textPrimary, flex: 1 }}>
-                {item.name}
-              </Text>
-              <Text style={{ ...typography.bodyMedium, color: colors.textSecondary }}>
-                {item.dialCode}
-              </Text>
-              {country.iso2 === item.iso2 && (
-                <Check size={18} color={colors.primary} />
-              )}
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={{ fontSize: 24, marginRight: spacing.md }}>{item.flag}</Text>
+                <Text
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  style={{
+                    ...typography.body,
+                    color: colors.textPrimary,
+                    flex: 1,
+                    marginRight: spacing.md,
+                  }}
+                >
+                  {item.name}
+                </Text>
+                <Text
+                  style={{
+                    ...typography.bodyMedium,
+                    color: colors.textSecondary,
+                    marginRight: spacing.md,
+                  }}
+                >
+                  {item.dialCode}
+                </Text>
+                {country.iso2 === item.iso2 && (
+                  <Check size={18} color={colors.primary} />
+                )}
+              </View>
             </Pressable>
           ))}
         </ScrollView>

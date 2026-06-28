@@ -111,8 +111,8 @@ export function MessageBubble({ message, isMine, onRetry, onReply, onLongPress }
             </Text>
           )}
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2, alignSelf: 'flex-end' }}>
-            <Text style={{ ...typography.micro, color: timeColor }}>{time}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2, alignSelf: 'flex-end' }}>
+            <Text style={{ ...typography.micro, color: timeColor, marginRight: 4 }}>{time}</Text>
             {isMine && <StatusIcon status={status} />}
           </View>
 

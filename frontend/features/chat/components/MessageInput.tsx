@@ -69,7 +69,6 @@ export function MessageInput({ onSend, onTypingStart, onTypingStop }: MessageInp
         backgroundColor: colors.card,
         paddingHorizontal: spacing.sm,
         paddingVertical: spacing.sm,
-        gap: spacing.sm,
         borderTopWidth: 0.5,
         borderTopColor: colors.border,
       }}
@@ -84,6 +83,7 @@ export function MessageInput({ onSend, onTypingStart, onTypingStop }: MessageInp
           alignItems: 'center',
           justifyContent: 'center',
           marginBottom: 4,
+          marginRight: spacing.sm,
         }}
       >
         <Paperclip size={22} color={colors.textSecondary} />
@@ -100,6 +100,7 @@ export function MessageInput({ onSend, onTypingStart, onTypingStop }: MessageInp
           backgroundColor: colors.secondaryBackground,
           paddingHorizontal: spacing.md,
           paddingVertical: 8,
+          marginRight: spacing.sm,
         }}
         placeholder="Message"
         placeholderTextColor={colors.textSecondary}

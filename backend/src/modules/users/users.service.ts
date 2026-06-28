@@ -3,9 +3,18 @@ import { Message } from '../messages/message.model.js';
 import type { UpdateMeInput } from './users.schema.js';
 
 export async function getMe(userId: string) {
-  const user = await User.findById(userId);
+  const user = await User.findById(userId).lean();
   if (!user) return null;
-  return user;
+  return {
+    id: user._id.toString(),
+    phone: user.phoneE164,
+    displayName: user.displayName,
+    avatarUrl: user.avatarUrl,
+    bio: user.bio,
+    username: user.username,
+    publicKey: user.publicKey,
+    lastSeen: user.lastSeen,
+  };
 }
 
 export async function getUserById(userId: string) {

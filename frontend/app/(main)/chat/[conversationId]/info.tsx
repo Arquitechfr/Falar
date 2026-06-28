@@ -102,7 +102,7 @@ export default function ConversationInfoScreen() {
         </View>
 
         {/* Quick actions */}
-        <View style={{ flexDirection: 'row', paddingHorizontal: spacing.lg, gap: spacing.sm, marginBottom: spacing.lg }}>
+        <View style={{ flexDirection: 'row', paddingHorizontal: spacing.lg, marginBottom: spacing.lg }}>
           {actions.map((action, index) => (
             <Pressable
               key={index}
@@ -110,14 +110,14 @@ export default function ConversationInfoScreen() {
               style={({ pressed }) => ({
                 flex: 1,
                 alignItems: 'center',
-                gap: 6,
                 backgroundColor: colors.card,
                 borderRadius: radii.md,
                 paddingVertical: spacing.md,
+                marginRight: index < actions.length - 1 ? spacing.sm : 0,
                 opacity: pressed ? 0.7 : 1,
               })}
             >
-              {action.icon}
+              <View style={{ marginBottom: 6 }}>{action.icon}</View>
               <Text style={{ ...typography.caption, color: colors.textPrimary }}>{action.label}</Text>
             </Pressable>
           ))}
@@ -134,13 +134,12 @@ export default function ConversationInfoScreen() {
                   alignItems: 'center',
                   paddingVertical: spacing.md,
                   paddingHorizontal: spacing.md,
-                  gap: spacing.sm,
                   backgroundColor: pressed ? colors.secondaryBackground : 'transparent',
                   borderBottomWidth: index < menuItems.length - 1 ? 0.5 : 0,
                   borderBottomColor: colors.border,
                 })}
               >
-                {item.icon}
+                <View style={{ marginRight: spacing.sm }}>{item.icon}</View>
                 <Text style={{ ...typography.body, color: colors.textPrimary, flex: 1 }}>{item.label}</Text>
                 <Text style={{ ...typography.caption, color: colors.textSecondary }}>{item.value}</Text>
               </Pressable>
@@ -148,8 +147,8 @@ export default function ConversationInfoScreen() {
           </Card>
 
           {/* Encryption info */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.card, borderRadius: radii.md, padding: spacing.md }}>
-            <Shield size={18} color={colors.success} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: radii.md, padding: spacing.md }}>
+            <Shield size={18} color={colors.success} style={{ marginRight: spacing.sm }} />
             <Text style={{ ...typography.caption, color: colors.textSecondary, flex: 1 }}>
               Les messages de cette conversation sont chiffrés de bout en bout.
             </Text>
@@ -161,14 +160,13 @@ export default function ConversationInfoScreen() {
             style={({ pressed }) => ({
               flexDirection: 'row',
               alignItems: 'center',
-              gap: spacing.sm,
               backgroundColor: colors.card,
               borderRadius: radii.md,
               padding: spacing.md,
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <Block size={18} color={colors.danger} />
+            <Block size={18} color={colors.danger} style={{ marginRight: spacing.sm }} />
             <Text style={{ ...typography.body, color: colors.danger, flex: 1 }}>Bloquer</Text>
           </Pressable>
 
@@ -177,14 +175,13 @@ export default function ConversationInfoScreen() {
             style={({ pressed }) => ({
               flexDirection: 'row',
               alignItems: 'center',
-              gap: spacing.sm,
               backgroundColor: colors.card,
               borderRadius: radii.md,
               padding: spacing.md,
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <Trash size={18} color={colors.danger} />
+            <Trash size={18} color={colors.danger} style={{ marginRight: spacing.sm }} />
             <Text style={{ ...typography.body, color: colors.danger, flex: 1 }}>Supprimer la conversation</Text>
           </Pressable>
         </View>

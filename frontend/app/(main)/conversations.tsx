@@ -96,8 +96,8 @@ export default function ConversationsScreen() {
   }, [router]);
 
   const renderSkeleton = useCallback(() => (
-    <View style={{ paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 2, flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 }}>
-      <Skeleton width={52} height={52} radius={26} />
+    <View style={{ paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 2, flexDirection: 'row', alignItems: 'center' }}>
+      <Skeleton width={52} height={52} radius={26} style={{ marginRight: spacing.sm + 2 }} />
       <View style={{ flex: 1, gap: 6 }}>
         <Skeleton width="60%" height={16} radius={8} />
         <Skeleton width="90%" height={14} radius={7} />

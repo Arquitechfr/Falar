@@ -1,0 +1,22 @@
+diff --git a/build/react-navigation/stack/views/Stack/Card.js b/build/react-navigation/stack/views/Stack/Card.js
+index 4846a1e833e2e92669f1d67e08f5673afec8d63c..1b3eef2258dd70d43a45d9ffca02e7fd0607cfd8 100644
+--- a/build/react-navigation/stack/views/Stack/Card.js
++++ b/build/react-navigation/stack/views/Stack/Card.js
+@@ -83,15 +83,10 @@ function Card({ shadowEnabled = false, gestureEnabled = true, gestureVelocityImp
+     }));
+     const [isSwiping] = React.useState(() => new react_native_1.Animated.Value(FALSE));
+     const onStartInteraction = (0, useLatestCallback_1.default)(() => {
+-        if (interactionHandleRef.current === undefined) {
+-            interactionHandleRef.current = react_native_1.InteractionManager.createInteractionHandle();
+-        }
++        // InteractionManager.createInteractionHandle() is deprecated in RN 0.85+
+     });
+     const onEndInteraction = (0, useLatestCallback_1.default)(() => {
+-        if (interactionHandleRef.current !== undefined) {
+-            react_native_1.InteractionManager.clearInteractionHandle(interactionHandleRef.current);
+-            interactionHandleRef.current = undefined;
+-        }
++        // InteractionManager.clearInteractionHandle() is deprecated in RN 0.85+
+     });
+     const animate = (0, useLatestCallback_1.default)(({ closing: isClosingParam, velocity }) => {
+         const toValue = getAnimateToValue({

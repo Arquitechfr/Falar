@@ -81,13 +81,12 @@ export default function SettingsScreen() {
                     alignItems: 'center',
                     paddingVertical: spacing.md,
                     paddingHorizontal: spacing.md,
-                    gap: spacing.sm,
                     backgroundColor: pressed ? colors.secondaryBackground : 'transparent',
                     borderBottomWidth: iIndex < section.items.length - 1 ? 0.5 : 0,
                     borderBottomColor: colors.border,
                   })}
                 >
-                  <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.secondaryBackground, alignItems: 'center', justifyContent: 'center' }}>
+                  <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.secondaryBackground, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm }}>
                     {item.icon}
                   </View>
                   <Text style={{ ...typography.body, color: colors.textPrimary, flex: 1 }}>

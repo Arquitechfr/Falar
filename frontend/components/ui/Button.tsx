@@ -1,5 +1,5 @@
 import { useCallback, type ReactNode } from 'react';
-import { Pressable, ActivityIndicator, TextStyle, ViewStyle } from 'react-native';
+import { Pressable, ActivityIndicator, TextStyle, ViewStyle, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -109,7 +109,6 @@ export function Button({
           alignItems: 'center',
           justifyContent: 'center',
           paddingHorizontal: 20,
-          gap: 8,
           alignSelf: fullWidth ? 'stretch' : 'flex-start',
           ...(variant === 'primary' ? shadows.fab : shadows.sm),
         },
@@ -120,9 +119,9 @@ export function Button({
         <ActivityIndicator color={vs.text} size="small" />
       ) : (
         <>
-          {leftIcon}
+          {leftIcon && <View style={{ marginRight: 8 }}>{leftIcon}</View>}
           <Animated.Text style={textStyle}>{label}</Animated.Text>
-          {rightIcon}
+          {rightIcon && <View style={{ marginLeft: 8 }}>{rightIcon}</View>}
         </>
       )}
     </AnimatedPressable>

@@ -77,7 +77,6 @@ export function Input({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    gap: spacing.sm,
   };
 
   const textInputStyle: TextStyle = {
@@ -103,7 +102,7 @@ export function Input({
           style,
         ]}
       >
-        {leftIcon}
+        {leftIcon && <View style={{ marginRight: spacing.sm }}>{leftIcon}</View>}
         <TextInput
           style={textInputStyle}
           value={value}
@@ -129,7 +128,7 @@ export function Input({
             )}
           </Pressable>
         )}
-        {rightIcon}
+        {rightIcon && <View style={{ marginLeft: spacing.sm }}>{rightIcon}</View>}
       </Animated.View>
       {error && (
         <Text style={{ ...typography.caption, color: colors.danger, marginLeft: spacing.xs }}>

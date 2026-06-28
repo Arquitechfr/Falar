@@ -131,11 +131,10 @@ export function ActionSheet({ visible, onClose, title, actions }: ActionSheetPro
                 alignItems: 'center',
                 paddingVertical: spacing.md,
                 paddingHorizontal: spacing.lg,
-                gap: spacing.md,
                 backgroundColor: pressed ? colors.secondaryBackground : 'transparent',
               })}
             >
-              {action.icon}
+              <View style={{ marginRight: spacing.md }}>{action.icon}</View>
               <Text
                 style={{
                   ...typography.bodyMedium,

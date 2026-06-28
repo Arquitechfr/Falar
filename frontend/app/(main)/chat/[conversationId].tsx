@@ -126,7 +126,7 @@ export default function ChatScreen() {
           subtitle={subtitle}
           onBack={() => router.back()}
           rightActions={
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Pressable
                 onPress={() => router.push({ pathname: '/(main)/call/audio', params: { recipientName: params.recipientName, recipientId: params.recipientId } })}
                 hitSlop={8}
@@ -136,6 +136,7 @@ export default function ChatScreen() {
                   borderRadius: 16,
                   alignItems: 'center',
                   justifyContent: 'center',
+                  marginRight: spacing.sm,
                   opacity: pressed ? 0.6 : 1,
                 })}
               >
@@ -150,6 +151,7 @@ export default function ChatScreen() {
                   borderRadius: 16,
                   alignItems: 'center',
                   justifyContent: 'center',
+                  marginRight: spacing.sm,
                   opacity: pressed ? 0.6 : 1,
                 })}
               >

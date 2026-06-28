@@ -193,8 +193,8 @@ export default function AudioCallScreen() {
         </View>
 
         <View style={{ alignItems: 'center' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <PhoneCall size={16} color={state === 'connected' ? colors.success : colors.textSecondary} />
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <PhoneCall size={16} color={state === 'connected' ? colors.success : colors.textSecondary} style={{ marginRight: 6 }} />
             <Text style={{ ...typography.caption, color: state === 'connected' ? colors.success : colors.textSecondary }}>
               {statusText}
             </Text>
@@ -202,30 +202,36 @@ export default function AudioCallScreen() {
         </View>
 
         <View style={{ alignItems: 'center', gap: spacing.lg, paddingBottom: spacing.xl }}>
-          <View style={{ flexDirection: 'row', gap: spacing.lg }}>
-            <CallButton
-              icon={muted ? <MicOff size={24} color="#FFFFFF" /> : <Mic size={24} color={colors.textPrimary} />}
-              onPress={webrtc.toggleMute}
-              active={muted}
-            />
-            <CallButton
-              icon={<Volume2 size={24} color={speakerEnabled ? '#FFFFFF' : colors.textPrimary} />}
-              onPress={webrtc.toggleSpeaker}
-              active={speakerEnabled}
-            />
+          <View style={{ flexDirection: 'row' }}>
+            <View style={{ marginRight: spacing.lg }}>
+              <CallButton
+                icon={muted ? <MicOff size={24} color="#FFFFFF" /> : <Mic size={24} color={colors.textPrimary} />}
+                onPress={webrtc.toggleMute}
+                active={muted}
+              />
+            </View>
+            <View style={{ marginRight: spacing.lg }}>
+              <CallButton
+                icon={<Volume2 size={24} color={speakerEnabled ? '#FFFFFF' : colors.textPrimary} />}
+                onPress={webrtc.toggleSpeaker}
+                active={speakerEnabled}
+              />
+            </View>
             <CallButton
               icon={<Bluetooth size={24} color={bluetooth ? '#FFFFFF' : colors.textPrimary} />}
               onPress={() => setBluetooth(!bluetooth)}
               active={bluetooth}
             />
           </View>
-          <View style={{ flexDirection: 'row', gap: spacing.lg }}>
-            <CallButton
-              icon={<Grid size={24} color={showKeypad ? '#FFFFFF' : colors.textPrimary} />}
-              onPress={() => setShowKeypad(!showKeypad)}
-              active={showKeypad}
-              size={50}
-            />
+          <View style={{ flexDirection: 'row' }}>
+            <View style={{ marginRight: spacing.lg }}>
+              <CallButton
+                icon={<Grid size={24} color={showKeypad ? '#FFFFFF' : colors.textPrimary} />}
+                onPress={() => setShowKeypad(!showKeypad)}
+                active={showKeypad}
+                size={50}
+              />
+            </View>
             <CallButton
               icon={<PhoneOff size={28} color="#FFFFFF" />}
               onPress={handleHangup}

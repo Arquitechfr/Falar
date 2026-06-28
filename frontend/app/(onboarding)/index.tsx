@@ -199,9 +199,11 @@ export default function OnboardingScreen() {
           }}
         >
           {/* Progress indicator */}
-          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
             {PAGES.map((_, index) => (
-              <ProgressDot key={index} index={index} activeIndex={currentIndex} />
+              <View key={index} style={{ marginRight: index < PAGES.length - 1 ? 8 : 0 }}>
+                <ProgressDot index={index} activeIndex={currentIndex} />
+              </View>
             ))}
           </View>
 

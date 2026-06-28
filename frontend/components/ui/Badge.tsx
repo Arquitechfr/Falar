@@ -35,7 +35,6 @@ export function Badge({ label, variant = 'primary', size = 'md', icon, style }: 
         {
           flexDirection: 'row',
           alignItems: 'center',
-          gap: 4,
           backgroundColor: bg,
           borderRadius: height / 2,
           paddingHorizontal: size === 'sm' ? 6 : 8,
@@ -45,7 +44,7 @@ export function Badge({ label, variant = 'primary', size = 'md', icon, style }: 
         style,
       ]}
     >
-      {icon}
+      {icon && <View style={{ marginRight: 4 }}>{icon}</View>}
       <Text
         style={{
           ...typography.micro,

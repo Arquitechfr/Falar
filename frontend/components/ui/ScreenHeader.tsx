@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, Children } from 'react';
 import { View, Text, Pressable, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -48,7 +48,6 @@ export function ScreenHeader({
             alignItems: 'center',
             height: 56,
             paddingHorizontal: spacing.sm,
-            gap: spacing.sm,
           },
           style,
         ]}
@@ -84,7 +83,15 @@ export function ScreenHeader({
             </Text>
           )}
         </View>
-        {rightActions && <View style={{ flexDirection: 'row', gap: spacing.sm }}>{rightActions}</View>}
+        {rightActions && (
+          <View style={{ flexDirection: 'row' }}>
+            {Children.map(rightActions, (child, index) => (
+              <View key={index} style={{ marginLeft: index > 0 ? spacing.sm : 0 }}>
+                {child}
+              </View>
+            ))}
+          </View>
+        )}
       </View>
     </View>
   );

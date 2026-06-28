@@ -265,21 +265,24 @@ export default function VideoCallScreen() {
               right: 0,
               flexDirection: 'row',
               justifyContent: 'center',
-              gap: spacing.lg,
             },
             controlsAnimatedStyle,
           ]}
         >
-          <VideoCallButton
-            icon={muted ? <MicOff size={24} color="#FFFFFF" /> : <Mic size={24} color="#FFFFFF" />}
-            onPress={webrtc.toggleMute}
-            active={muted}
-          />
-          <VideoCallButton
-            icon={videoEnabled ? <Video size={24} color="#FFFFFF" /> : <VideoOff size={24} color="#FFFFFF" />}
-            onPress={webrtc.toggleVideo}
-            active={!videoEnabled}
-          />
+          <View style={{ marginRight: spacing.lg }}>
+            <VideoCallButton
+              icon={muted ? <MicOff size={24} color="#FFFFFF" /> : <Mic size={24} color="#FFFFFF" />}
+              onPress={webrtc.toggleMute}
+              active={muted}
+            />
+          </View>
+          <View style={{ marginRight: spacing.lg }}>
+            <VideoCallButton
+              icon={videoEnabled ? <Video size={24} color="#FFFFFF" /> : <VideoOff size={24} color="#FFFFFF" />}
+              onPress={webrtc.toggleVideo}
+              active={!videoEnabled}
+            />
+          </View>
           <VideoCallButton
             icon={<PhoneOff size={24} color="#FFFFFF" />}
             onPress={handleHangup}

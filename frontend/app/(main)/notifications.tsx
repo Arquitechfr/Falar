@@ -88,7 +88,6 @@ export default function NotificationsScreen() {
         alignItems: 'flex-start',
         paddingHorizontal: spacing.lg,
         paddingVertical: spacing.md,
-        gap: spacing.sm + 2,
         backgroundColor: pressed ? colors.secondaryBackground : (item.read ? 'transparent' : colors.secondaryBackground + '40'),
       })}
     >
@@ -104,7 +103,7 @@ export default function NotificationsScreen() {
       >
         {typeIcons[item.type] || <Bell size={20} color="#FFFFFF" />}
       </View>
-      <View style={{ flex: 1, gap: 2 }}>
+      <View style={{ flex: 1, gap: 2, marginLeft: spacing.sm + 2 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Text style={{ ...typography.subtitle, color: colors.textPrimary, flex: 1 }} numberOfLines={1}>
             {item.title}
@@ -131,8 +130,8 @@ export default function NotificationsScreen() {
         <ScreenHeader title="Notifications" onBack={() => router.back()} showBack />
         <View style={{ paddingTop: spacing.md, gap: spacing.sm }}>
           {Array.from({ length: 6 }).map((_, i) => (
-            <View key={i} style={{ flexDirection: 'row', paddingHorizontal: spacing.lg, gap: spacing.sm + 2 }}>
-              <Skeleton width={40} height={40} radius={20} />
+            <View key={i} style={{ flexDirection: 'row', paddingHorizontal: spacing.lg }}>
+              <Skeleton width={40} height={40} radius={20} style={{ marginRight: spacing.sm + 2 }} />
               <View style={{ flex: 1, gap: 6 }}>
                 <Skeleton width="60%" height={16} radius={8} />
                 <Skeleton width="90%" height={14} radius={7} />

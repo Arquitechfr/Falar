@@ -83,8 +83,8 @@ export default function SearchScreen() {
       {loading ? (
         <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.md, gap: spacing.sm }}>
           {Array.from({ length: 5 }).map((_, i) => (
-            <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-              <Skeleton width={48} height={48} radius={24} />
+            <View key={i} style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Skeleton width={48} height={48} radius={24} style={{ marginRight: spacing.sm }} />
               <View style={{ gap: 6 }}>
                 <Skeleton width={140} height={16} radius={8} />
                 <Skeleton width={80} height={14} radius={7} />
@@ -107,11 +107,10 @@ export default function SearchScreen() {
                     alignItems: 'center',
                     paddingHorizontal: spacing.lg,
                     paddingVertical: spacing.sm + 2,
-                    gap: spacing.sm + 2,
                     backgroundColor: pressed ? colors.secondaryBackground : 'transparent',
                   })}
                 >
-                  <Avatar name={user.displayName || user.phone} size={48} avatarUrl={user.avatarUrl} />
+                  <Avatar name={user.displayName || user.phone} size={48} avatarUrl={user.avatarUrl} style={{ marginRight: spacing.sm + 2 }} />
                   <View style={{ flex: 1 }}>
                     <Text style={{ ...typography.subtitle, color: colors.textPrimary }} numberOfLines={1}>
                       {user.displayName || user.phone}
@@ -133,11 +132,10 @@ export default function SearchScreen() {
                   alignItems: 'center',
                   paddingHorizontal: spacing.lg,
                   paddingVertical: spacing.sm + 2,
-                  gap: spacing.sm + 2,
                   backgroundColor: pressed ? colors.secondaryBackground : 'transparent',
                 })}
               >
-                <View style={{ width: 48, height: 48, borderRadius: 12, backgroundColor: colors.secondaryBackground, alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ width: 48, height: 48, borderRadius: 12, backgroundColor: colors.secondaryBackground, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm + 2 }}>
                   <ImageIcon size={20} color={colors.textSecondary} />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -152,8 +150,8 @@ export default function SearchScreen() {
             );
           }}
           renderSectionHeader={({ section }) => (
-            <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: 4, backgroundColor: colors.background, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              {section.icon}
+            <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: 4, backgroundColor: colors.background, flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ marginRight: 6 }}>{section.icon}</View>
               <Text style={{ ...typography.captionMedium, color: colors.textSecondary }}>
                 {section.title.toUpperCase()}
               </Text>

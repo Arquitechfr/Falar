@@ -134,12 +134,11 @@ export default function PasswordScreen() {
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 6,
               marginTop: spacing.xl,
               paddingHorizontal: spacing.md,
             }}
           >
-            <Shield size={14} color={colors.textSecondary} />
+            <Shield size={14} color={colors.textSecondary} style={{ marginRight: 6 }} />
             <Text style={{ ...typography.caption, color: colors.textSecondary, textAlign: 'center' }}>
               Vos clés de chiffrement ne quittent jamais votre appareil
             </Text>

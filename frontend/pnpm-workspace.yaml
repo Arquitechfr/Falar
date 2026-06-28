@@ -1,2 +1,4 @@
 allowBuilds:
   core-js: true
+patchedDependencies:
+  expo-router@56.2.11: patches/expo-router@56.2.11.patch

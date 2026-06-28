@@ -13,7 +13,7 @@ module.exports = {
         primary: '#C96B4A',
         primaryLight: '#D98969',
         primaryDark: '#A85337',
-        background: '#FAF7F5',
+        background: '#d45535',
         card: '#FFFFFF',
         secondaryBackground: '#F2ECE8',
         border: '#E9DFDA',

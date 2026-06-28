@@ -19,7 +19,7 @@
     "android": {
       "package": "com.falar.app",
       "adaptiveIcon": {
-        "backgroundColor": "#FAF7F5",
+        "backgroundColor": "#d45535",
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundImage": "./assets/adaptive-icon.png",
         "monochromeImage": "./assets/adaptive-icon.png"
@@ -51,7 +51,7 @@
         {
           "image": "./assets/splash.png",
           "resizeMode": "contain",
-          "backgroundColor": "#C96B4A"
+          "backgroundColor": "#d45535"
         }
       ],
       [

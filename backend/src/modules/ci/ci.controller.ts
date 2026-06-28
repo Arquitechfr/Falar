@@ -63,7 +63,8 @@ export async function uploadApkController(req: Request, res: Response, next: Nex
 
     await upload.done();
 
-    const fileUrl = `https://${env.MINIO_ENDPOINT}/${minioBucket}/${key}`;
+    const cleanEndpoint = env.MINIO_ENDPOINT.replace(/^https?:\/\//, '');
+    const fileUrl = `https://${cleanEndpoint}/${minioBucket}/${key}`;
 
     res.status(201).json({
       url: fileUrl,

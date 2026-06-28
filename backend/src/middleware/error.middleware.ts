@@ -21,6 +21,13 @@ export function errorMiddleware(err: unknown, _req: Request, res: Response, _nex
       });
       return;
     }
+    // S3/MinIO errors have string codes like 'ECONNREFUSED', 'ENOTFOUND', etc.
+    if (typeof code === 'string') {
+      res.status(500).json({
+        error: { code: 'STORAGE_ERROR', message: 'Storage operation failed' },
+      });
+      return;
+    }
     res.status(400).json({
       error: { code: 'DATABASE_ERROR', message: 'Database operation failed' },
     });
@@ -42,7 +49,13 @@ export function errorMiddleware(err: unknown, _req: Request, res: Response, _nex
   }
 
   console.error('[Error] Unhandled:', err);
+  const errorMessage = err instanceof Error ? err.message : String(err);
+  const errorStack = err instanceof Error ? err.stack : undefined;
   res.status(500).json({
-    error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' },
+    error: { 
+      code: 'INTERNAL_ERROR', 
+      message: errorMessage,
+      ...(process.env.NODE_ENV === 'development' && { stack: errorStack })
+    },
   });
 }

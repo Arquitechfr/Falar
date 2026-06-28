@@ -41,3 +41,4 @@ yarn-error.*
 /ios
 /android
 frontend/credentials.json
+frontend/google-services.json

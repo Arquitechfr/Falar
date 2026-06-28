@@ -35,9 +35,8 @@ export function useContacts() {
   const store = useContactsStore();
 
   const loadStoredContacts = useCallback(async (): Promise<SyncedContact[]> => {
-    const contacts = await getContacts();
-    store.setContacts(contacts);
-    return contacts;
+    await store.loadStoredContacts();
+    return store.contacts;
   }, [store]);
 
   const syncDeviceContacts = useCallback(async (): Promise<SyncedContact[]> => {

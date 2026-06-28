@@ -11,6 +11,7 @@ export interface ColorPalette {
   warning: string;
   textPrimary: string;
   textSecondary: string;
+  textTertiary: string;
   bubbleMine: string;
   bubbleOther: string;
   statusRead: string;
@@ -23,7 +24,7 @@ export const lightColors: ColorPalette = {
   primary: '#C96B4A',
   primaryLight: '#D98969',
   primaryDark: '#A85337',
-  background: '#d45535',
+  background: '#FFFFFF',
   card: '#FFFFFF',
   secondaryBackground: '#F2ECE8',
   border: '#E9DFDA',
@@ -32,6 +33,7 @@ export const lightColors: ColorPalette = {
   warning: '#F2A541',
   textPrimary: '#1F1F1F',
   textSecondary: '#7B7B7B',
+  textTertiary: '#A0A0A0',
   bubbleMine: '#C96B4A',
   bubbleOther: '#F2ECE8',
   statusRead: '#C96B4A',
@@ -53,6 +55,7 @@ export const darkColors: ColorPalette = {
   warning: '#F2A541',
   textPrimary: '#F5F0EC',
   textSecondary: '#9B958E',
+  textTertiary: '#6B6560',
   bubbleMine: '#A85337',
   bubbleOther: '#28231E',
   statusRead: '#D98969',

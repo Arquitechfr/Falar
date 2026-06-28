@@ -3,6 +3,9 @@
     "name": "Falar",
     "slug": "falar",
     "version": "1.0.0",
+    "cli": {
+      "appVersionSource": "local"
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",

@@ -82,13 +82,6 @@ const LANDING_PAGE = `<!DOCTYPE html>
     <h1>Falar API</h1>
     <p class="tagline">Backend de messagerie chiffré de bout en bout.<br>Le serveur ne voit jamais le contenu de vos messages.</p>
     <div class="status"><span class="dot"></span> Opérationnel</div>
-    <div class="endpoints">
-      <h2>Endpoints publics</h2>
-      <div class="endpoint"><span class="method get">GET</span><span class="path">/health</span></div>
-      <div class="endpoint"><span class="method post">POST</span><span class="path">/auth/send-otp</span></div>
-      <div class="endpoint"><span class="method post">POST</span><span class="path">/auth/verify-otp</span></div>
-      <div class="endpoint"><span class="method post">POST</span><span class="path">/auth/refresh</span></div>
-    </div>
     <p class="footer">Falar &copy; ${new Date().getFullYear()}</p>
   </div>
 </body>

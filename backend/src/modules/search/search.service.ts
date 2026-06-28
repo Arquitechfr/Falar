@@ -7,7 +7,7 @@ export async function searchUsers(userId: string, query: string): Promise<unknow
     $or: [
       { displayName: { $regex: query, $options: 'i' } },
       { username: { $regex: query, $options: 'i' } },
-      { phone: { $regex: query, $options: 'i' } },
+      { phoneE164: { $regex: query, $options: 'i' } },
     ],
   })
     .limit(20)
@@ -18,7 +18,7 @@ export async function searchUsers(userId: string, query: string): Promise<unknow
     displayName: u.displayName,
     avatarUrl: u.avatarUrl,
     username: u.username,
-    phone: u.phone,
+    phone: u.phoneE164,
   }));
 }
 

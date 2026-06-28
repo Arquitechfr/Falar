@@ -25,8 +25,8 @@ export async function syncContacts(
   const phoneHashes = input.contacts.map((c) => hashPhone(c.phone));
   const phones = input.contacts.map((c) => c.phone);
 
-  const memberUsers = await User.find({ phone: { $in: phones } }).lean();
-  const phoneToUser = new Map(memberUsers.map((u) => [u.phone, u]));
+  const memberUsers = await User.find({ phoneE164: { $in: phones } }).lean();
+  const phoneToUser = new Map(memberUsers.map((u) => [u.phoneE164, u]));
 
   const results: SyncedContact[] = [];
   const upsertOps: Promise<unknown>[] = [];

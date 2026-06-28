@@ -18,11 +18,10 @@ const envSchema = z.object({
   MINIO_SECRET_KEY: z.string().min(1),
   MINIO_BUCKET: z.string().min(1),
 
-  SMS_GATEWAY_ENABLED: z.string().transform((v) => v === 'true').default('false'),
-  SMS_GATEWAY_URL: z.string().optional(),
-  SMS_GATEWAY_LOGIN: z.string().optional(),
-  SMS_GATEWAY_PASSWORD: z.string().optional(),
-  SMS_GATEWAY_DEVICE_ID: z.string().optional(),
+  TWILIO_ENABLED: z.string().transform((v) => v === 'true').default('true'),
+  TWILIO_ACCOUNT_SID: z.string().min(1),
+  TWILIO_AUTH_TOKEN: z.string().min(1),
+  TWILIO_VERIFY_SERVICE_SID: z.string().min(1),
 
   ALLOWED_ORIGINS: z.string().min(1),
 

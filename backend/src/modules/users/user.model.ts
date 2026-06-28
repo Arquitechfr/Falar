@@ -2,7 +2,8 @@ import { Schema, model } from 'mongoose';
 
 export interface IUser {
   _id: string;
-  phone: string;
+  phoneHash: string;
+  phoneE164: string;
   publicKey: string;
   displayName: string;
   avatarUrl: string;
@@ -16,7 +17,8 @@ export interface IUser {
 
 const userSchema = new Schema<IUser>(
   {
-    phone: { type: String, required: true, unique: true, index: true },
+    phoneHash: { type: String, required: true, unique: true, index: true },
+    phoneE164: { type: String, required: true },
     publicKey: { type: String, required: true },
     displayName: { type: String, default: '' },
     avatarUrl: { type: String, default: '' },

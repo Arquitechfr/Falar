@@ -13,7 +13,7 @@ export async function getUserById(userId: string) {
   if (!user) return null;
   return {
     id: user._id.toString(),
-    phone: user.phone,
+    phone: user.phoneE164,
     displayName: user.displayName,
     avatarUrl: user.avatarUrl,
     bio: user.bio,
@@ -29,11 +29,11 @@ export async function updateMe(userId: string, data: UpdateMeInput) {
 }
 
 export async function searchByPhone(phone: string) {
-  const user = await User.findOne({ phone });
+  const user = await User.findOne({ phoneE164: phone });
   if (!user) return null;
   return {
     id: user._id.toString(),
-    phone: user.phone,
+    phone: user.phoneE164,
     displayName: user.displayName,
     avatarUrl: user.avatarUrl,
     bio: user.bio,
@@ -78,7 +78,7 @@ export async function getContacts(userId: string) {
       if (!user) return null;
       return {
         id: user._id.toString(),
-        phone: user.phone,
+        phone: user.phoneE164,
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,
         bio: user.bio,

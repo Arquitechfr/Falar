@@ -1,8 +1,18 @@
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { env } from '../../config/env.js';
 import { redis } from '../../config/redis.js';
 import { User } from '../users/user.model.js';
 import { generateOTP, storeOTP, checkOTPRateLimit, verifyOTP } from '../../utils/otp.js';
+import { sendTwilioOtp, verifyTwilioOtp } from './twilio-verify.service.js';
+
+function hashPhoneNumber(phoneNumber: string): string {
+  return crypto
+    .createHash('sha256')
+    .update(phoneNumber)
+    .digest('hex')
+    .substring(0, 16);
+}
 
 const ACCESS_TOKEN_TTL = '15m';
 const REFRESH_TOKEN_TTL = '7d';
@@ -27,44 +37,25 @@ export async function sendOTP(phone: string): Promise<{ isNewUser: boolean }> {
     throw new AuthError('RATE_LIMITED', 'Too many OTP requests, try again later', 429);
   }
 
-  const existingUser = await User.findOne({ phone });
+  const phoneHash = hashPhoneNumber(phone);
+  const existingUser = await User.findOne({ phoneHash });
   const isNewUser = !existingUser;
 
+  // Essayer Twilio Verify en premier si activé
+  if (env.TWILIO_ENABLED) {
+    const twilioResult = await sendTwilioOtp(phone);
+    if (twilioResult.success) {
+      return { isNewUser };
+    }
+    console.log(`[OTP] Twilio échoué pour ${phoneHash}..., fallback sur système interne`);
+  }
+
+  // Fallback sur système interne
   const code = generateOTP();
   await storeOTP(phone, code);
-
-  if (env.SMS_GATEWAY_ENABLED && env.SMS_GATEWAY_URL) {
-    await sendViaSmsGateway(phone, code);
-  } else {
-    console.log(`[OTP] Dev mode — code for ${phone}: ${code}`);
-  }
+  console.log(`[OTP] Système interne — code pour ${phoneHash}: ${code}`);
 
   return { isNewUser };
-}
-
-async function sendViaSmsGateway(phone: string, code: string): Promise<void> {
-  const auth = Buffer.from(`${env.SMS_GATEWAY_LOGIN}:${env.SMS_GATEWAY_PASSWORD}`).toString('base64');
-
-  try {
-    const response = await fetch(`${env.SMS_GATEWAY_URL}/api/v1/message`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Basic ${auth}`,
-      },
-      body: JSON.stringify({
-        message: `Falar : ton code est ${code}`,
-        phone,
-        deviceId: env.SMS_GATEWAY_DEVICE_ID,
-      }),
-    });
-
-    if (!response.ok) {
-      console.error('[SMS] Gateway error:', response.status, await response.text());
-    }
-  } catch (err) {
-    console.error('[SMS] Failed to send OTP:', (err as Error).message);
-  }
 }
 
 export async function verifyOTPAndLogin(
@@ -73,27 +64,46 @@ export async function verifyOTPAndLogin(
   publicKey: string,
   deviceToken?: string,
 ): Promise<{ accessToken: string; refreshToken: string; user: { id: string; phone: string; publicKey: string; displayName: string } }> {
-  const valid = await verifyOTP(phone, code);
+  const phoneHash = hashPhoneNumber(phone);
+  let valid = false;
+
+  // Essayer Twilio Verify en premier si activé
+  if (env.TWILIO_ENABLED) {
+    const twilioResult = await verifyTwilioOtp(phone, code);
+    if (twilioResult.success) {
+      valid = true;
+    } else {
+      console.log(`[OTP] Twilio vérification échouée pour ${phoneHash}..., fallback sur système interne`);
+    }
+  }
+
+  // Fallback sur système interne
+  if (!valid) {
+    valid = await verifyOTP(phone, code);
+  }
+
   if (!valid) {
     throw new AuthError('INVALID_OTP', 'Invalid or expired OTP code', 401);
   }
 
-  let user = await User.findOne({ phone });
+  let user = await User.findOne({ phoneHash });
   if (user) {
     user.publicKey = publicKey;
+    user.phoneE164 = phone;
     if (deviceToken) user.deviceToken = deviceToken;
     await user.save();
   } else {
     const maskedPhone = phone.slice(0, 4) + '****' + phone.slice(-2);
     user = await User.create({
-      phone,
+      phoneHash,
+      phoneE164: phone,
       publicKey,
       displayName: maskedPhone,
       deviceToken: deviceToken || '',
     });
   }
 
-  const payload = { userId: user._id.toString(), phone: user.phone };
+  const payload = { userId: user._id.toString(), phone: user.phoneE164 };
   const accessToken = jwt.sign(payload, env.JWT_ACCESS_SECRET, { expiresIn: ACCESS_TOKEN_TTL });
   const refreshToken = jwt.sign(payload, env.JWT_REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_TTL });
 
@@ -104,7 +114,7 @@ export async function verifyOTPAndLogin(
     refreshToken,
     user: {
       id: user._id.toString(),
-      phone: user.phone,
+      phone: user.phoneE164,
       publicKey: user.publicKey,
       displayName: user.displayName,
     },

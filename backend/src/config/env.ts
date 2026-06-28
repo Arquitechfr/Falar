@@ -25,6 +25,8 @@ const envSchema = z.object({
   SMS_GATEWAY_DEVICE_ID: z.string().optional(),
 
   ALLOWED_ORIGINS: z.string().min(1),
+
+  CI_UPLOAD_TOKEN: z.string().min(16),
 });
 
 const parsed = envSchema.safeParse(process.env);

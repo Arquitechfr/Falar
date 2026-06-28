@@ -64,6 +64,9 @@ src/
     media/
       media.routes.ts    # POST /media/upload (multer + S3)
       media.controller.ts
+    ci/
+      ci.routes.ts       # POST /ci/upload-apk (CI token auth, multer disk + S3 multipart)
+      ci.controller.ts
   socket/
     chat.handler.ts      # /chat namespace: auth, typing, message:delivered, presence, disconnect
   utils/
@@ -103,6 +106,7 @@ src/
 | GET | `/messages/:conversationId` | Yes | Get messages for a conversation |
 | PATCH | `/messages/:messageId/status` | Yes | Update message status |
 | POST | `/media/upload` | Yes | Upload media to S3 |
+| POST | `/ci/upload-apk` | CI Token | Upload APK/AAB to S3 (GitHub Actions) |
 | GET | `/health` | No | Health check |
 
 ## Socket.IO events (/chat namespace)
@@ -129,3 +133,4 @@ See `.env.example` for all required variables. Key ones:
 - `MINIO_*` (S3-compatible storage)
 - `SMS_GATEWAY_*` (OTP delivery)
 - `ALLOWED_ORIGINS` (comma-separated CORS origins)
+- `CI_UPLOAD_TOKEN` (token for GitHub Actions APK upload)

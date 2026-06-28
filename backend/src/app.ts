@@ -18,6 +18,7 @@ import callsRoutes from './modules/calls/calls.routes.js';
 import notificationsRoutes from './modules/notifications/notifications.routes.js';
 import searchRoutes from './modules/search/search.routes.js';
 import contactsRoutes from './modules/contacts/contacts.routes.js';
+import ciRoutes from './modules/ci/ci.routes.js';
 
 const LANDING_PAGE = `<!DOCTYPE html>
 <html lang="fr">
@@ -119,6 +120,7 @@ app.use('/media', mediaRoutes);
 app.use('/calls', callsRoutes);
 app.use('/notifications', notificationsRoutes);
 app.use('/search', searchRoutes);
+app.use('/ci', ciRoutes);
 app.use('/contacts', contactsRoutes);
 
 // Landing page

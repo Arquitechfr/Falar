@@ -6,6 +6,8 @@ name: Remote Android Build
 # Secrets repo (Settings → Actions → Secrets) :
 #   EXPO_PUBLIC_API_URL    → URL du backend (ex: https://api.falar.app)
 #   EXPO_PUBLIC_SOCKET_URL → URL du socket server (ex: wss://api.falar.app)
+#   CI_UPLOAD_TOKEN        → Token d'auth pour l'endpoint /ci/upload-apk
+#   BACKEND_URL            → URL base du backend pour l'upload CI (ex: https://api.falar.app)
 #
 # Keystore production (optionnel pour l'instant — build non signé si absent) :
 #   Variable : ANDROID_KEYSTORE_PATH (défaut /opt/falar/keys/keystore.jks)
@@ -152,7 +154,55 @@ jobs:
           echo "📦 Local artifacts copied to: $DEST_DIR"
           ls -lh "$DEST_DIR"
 
-      # ── 10. Cleanup ──────────────────────────────────────────────────────
+      # ── 10. Upload APK/AAB vers S3 MinIO via backend ─────────────────────
+      - name: Upload APK/AAB to S3 via backend
+        if: always()
+        env:
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
+          CI_UPLOAD_TOKEN: ${{ secrets.CI_UPLOAD_TOKEN }}
+        run: |
+          if [ -z "$BACKEND_URL" ] || [ -z "$CI_UPLOAD_TOKEN" ]; then
+            echo "⚠️  BACKEND_URL or CI_UPLOAD_TOKEN not set — skipping S3 upload"
+            exit 0
+          fi
+
+          PROFILE="${{ github.event.inputs.profile }}"
+          RUN_NUMBER="${{ github.run_number }}"
+          OUTPUT_DIR="${{ env.MOBILE_DIR }}/android/app/build/outputs"
+
+          # Find all APK and AAB files
+          FILES=$(find "$OUTPUT_DIR" -type f \( -name '*.apk' -o -name '*.aab' \) 2>/dev/null)
+
+          if [ -z "$FILES" ]; then
+            echo "⚠️  No APK/AAB files found — skipping S3 upload"
+            exit 0
+          fi
+
+          for FILE in $FILES; do
+            FILENAME=$(basename "$FILE")
+            echo "📤 Uploading $FILENAME to S3..."
+
+            HTTP_CODE=$(curl -s -o /tmp/ci-upload-response.json -w "%{http_code}" \
+              -X POST \
+              "${BACKEND_URL}/ci/upload-apk" \
+              -H "X-CI-Token: ${CI_UPLOAD_TOKEN}" \
+              -F "profile=${PROFILE}" \
+              -F "runNumber=${RUN_NUMBER}" \
+              -F "apk=@${FILE};type=application/vnd.android.package-archive")
+
+            echo "  HTTP $HTTP_CODE"
+            cat /tmp/ci-upload-response.json
+            echo ""
+
+            if [ "$HTTP_CODE" != "201" ]; then
+              echo "❌ Failed to upload $FILENAME (HTTP $HTTP_CODE)"
+              exit 1
+            fi
+
+            echo "✅ $FILENAME uploaded successfully"
+          done
+
+      # ── 11. Cleanup ──────────────────────────────────────────────────────
       - name: Cleanup build outputs
         if: always()
         run: rm -rf ${{ env.MOBILE_DIR }}/android/app/build/outputs

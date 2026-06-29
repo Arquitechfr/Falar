@@ -10,9 +10,12 @@ if (isProduction) {
   config.resolver.unstable_enablePackageExports = true;
 
   // Disable source maps in production to reduce bundle size
+  config.serializer = config.serializer || {};
+  config.serializer.options = config.serializer.options || {};
   config.serializer.options.sourceMaps = false;
 
   // Enable minification only in production
+  config.transformer = config.transformer || {};
   config.transformer.minifierConfig = {
     keep_classnames: false,
     keep_fnames: false,

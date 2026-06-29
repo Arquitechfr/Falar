@@ -185,7 +185,7 @@ export default function ContactsScreen() {
               avatarUrl={item.avatarUrl || undefined}
             />
             <View style={{ flex: 1, marginLeft: spacing.md }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
                 <Text
                   style={{
                     ...typography.subtitle,
@@ -206,7 +206,7 @@ export default function ContactsScreen() {
                       flexDirection: 'row',
                       alignItems: 'center',
                       paddingHorizontal: 12,
-                      paddingVertical: 6,
+                      paddingVertical: 4,
                       backgroundColor: pressed ? colors.primaryDark : colors.primary,
                       borderRadius: 20,
                       marginLeft: spacing.sm,
@@ -227,7 +227,7 @@ export default function ContactsScreen() {
                       flexDirection: 'row',
                       alignItems: 'center',
                       paddingHorizontal: 12,
-                      paddingVertical: 6,
+                      paddingVertical: 4,
                       backgroundColor: pressed ? colors.primaryDark : colors.primary,
                       borderRadius: 20,
                       marginLeft: spacing.sm,

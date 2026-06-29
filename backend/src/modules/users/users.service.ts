@@ -13,6 +13,7 @@ export async function getMe(userId: string) {
     bio: user.bio,
     username: user.username,
     publicKey: user.publicKey,
+    keySalt: user.keySalt,
     lastSeen: user.lastSeen,
   };
 }

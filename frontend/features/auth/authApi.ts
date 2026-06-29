@@ -8,6 +8,7 @@ export interface AuthUser {
   avatarUrl?: string;
   bio?: string;
   username?: string;
+  keySalt?: string;
 }
 
 export interface VerifyOtpResponse {

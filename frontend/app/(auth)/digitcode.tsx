@@ -4,6 +4,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { OtpInput } from 'react-native-otp-entry';
 import * as Crypto from 'expo-crypto';
+import * as SecureStore from 'expo-secure-store';
 import { fromByteArray } from 'base64-js';
 import { deriveKeypair } from '@/features/crypto/keyDerivation';
 import { verifyOtp } from '@/features/auth/authApi';
@@ -36,6 +37,7 @@ export default function DigitCodeScreen() {
   const [step, setStep] = useState<'pin' | 'confirm'>('pin');
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
+  const confirmPinRef = useRef('');
   const [loading, setLoading] = useState(false);
   const isSubmitting = useRef(false);
 
@@ -48,6 +50,7 @@ export default function DigitCodeScreen() {
 
   const handleConfirmPinFilled = useCallback((value: string) => {
     setConfirmPin(value);
+    confirmPinRef.current = value;
   }, []);
 
   const handleSubmit = useCallback(async () => {
@@ -55,7 +58,7 @@ export default function DigitCodeScreen() {
     isSubmitting.current = true;
     logger.log('[DigitCodeScreen] handleSubmit called', { isNewUser, phone: params.phone, code: params.code });
 
-    const activePin = step === 'confirm' ? confirmPin : pin;
+    const activePin = step === 'confirm' ? confirmPinRef.current : pin;
 
     if (activePin.length !== PIN_LENGTH) {
       isSubmitting.current = false;
@@ -69,7 +72,7 @@ export default function DigitCodeScreen() {
       return;
     }
 
-    if (isNewUser && pin !== confirmPin) {
+    if (isNewUser && pin !== confirmPinRef.current) {
       isSubmitting.current = false;
       toast.show('Les codes ne correspondent pas', 'error');
       return;
@@ -104,6 +107,16 @@ export default function DigitCodeScreen() {
       logger.log('[DigitCodeScreen] OTP verified, saving tokens...');
 
       await setTokens(result.accessToken, result.refreshToken);
+
+      try {
+        await SecureStore.setItemAsync('falar_pin', activePin, {
+          requireAuthentication: true,
+          authenticationPrompt: 'Autorisez Falar à sauvegarder votre accès',
+        });
+      } catch {
+        // Si l'utilisateur refuse la biométrie : pas bloquant, le PIN manuel reste disponible
+      }
+
       useCryptoStore.getState().setKeys(privateKey, publicKey);
       useAuthStore.getState().login(result.user);
 
@@ -126,9 +139,9 @@ export default function DigitCodeScreen() {
 
   const subtitle = isNewUser
     ? step === 'pin'
-      ? 'Ce code sert à dériver vos clés de chiffrement'
+      ? 'Mémorisez-le bien, il protège vos messages.'
       : 'Entrez-le à nouveau pour confirmer'
-    : 'Entrez vos 6 chiffres pour déverrouiller';
+    : 'Entrez votre code pour accéder à vos messages.';
 
   const theme = {
     containerStyle: styles.otpContainer,

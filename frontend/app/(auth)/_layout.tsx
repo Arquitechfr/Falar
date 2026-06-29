@@ -12,6 +12,8 @@ export default function AuthLayout() {
         animation: 'fade',
         animationDuration: 250,
       }}
-    />
+    >
+      <Stack.Screen name="unlock" />
+    </Stack>
   );
 }

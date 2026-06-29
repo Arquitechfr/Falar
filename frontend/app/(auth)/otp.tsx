@@ -63,7 +63,6 @@ export default function OtpScreen() {
         keySalt: params.keySalt || '',
       },
     });
-    setLoading(false);
   }, [isComplete, code, params, router]);
 
   const handleResend = useCallback(() => {

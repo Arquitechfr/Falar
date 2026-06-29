@@ -92,8 +92,8 @@ const app = express();
 app.set('trust proxy', 1);
 app.use(helmet());
 app.use(cors({ origin: allowedOrigins, credentials: true }));
-app.use(express.json({ limit: '600mb' }));
-app.use(express.urlencoded({ limit: '600mb', extended: true }));
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ limit: '2mb', extended: true }));
 
 // Global rate limit: 100 req/min per IP
 const globalLimiter = rateLimit({

@@ -3,6 +3,7 @@ import { useAuthStore } from './authStore';
 import { getMe } from './authApi';
 import { getAccessToken, clearTokens } from '@/services/api';
 import { useCryptoStore } from '@/features/crypto/cryptoStore';
+import { clearConversationPreviewCache } from '@/features/conversations/useConversations';
 
 export function useAuth() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -11,6 +12,7 @@ export function useAuth() {
   const login = useAuthStore((s) => s.login);
   const logout = useAuthStore((s) => s.logout);
   const setLoading = useAuthStore((s) => s.setLoading);
+  const privateKey = useCryptoStore((s) => s.privateKey);
 
   useEffect(() => {
     let mounted = true;
@@ -35,9 +37,12 @@ export function useAuth() {
 
   const handleLogout = async () => {
     await clearTokens();
+    clearConversationPreviewCache();
     useCryptoStore.getState().clearKeys();
     logout();
   };
 
-  return { user, isAuthenticated, isLoading, logout: handleLogout };
+  const keysReady = isAuthenticated && privateKey !== null;
+
+  return { user, isAuthenticated, isLoading, keysReady, logout: handleLogout };
 }

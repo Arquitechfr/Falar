@@ -4,7 +4,6 @@ import { env } from '../config/env.js';
 import { redis } from '../config/redis.js';
 import { User } from '../modules/users/user.model.js';
 import { updateMessageStatus } from '../modules/messages/messages.service.js';
-import { computeConversationId } from '../utils/conversationId.js';
 
 const TYPING_TTL = 3; // 3 seconds
 
@@ -37,24 +36,23 @@ export function registerChatHandlers(chatNamespace: Namespace): void {
     broadcastUserStatus(chatNamespace, userId, true);
 
     // typing:start
-    socket.on('typing:start', async (data: { conversationId: string }) => {
-      const { conversationId } = data;
-      const recipientSocketId = await findRecipientSocketId(conversationId, userId);
+    socket.on('typing:start', async (data: { conversationId: string; recipientId: string }) => {
+      if (!data.recipientId) return;
+      const recipientSocketId = await redis.get(`socket:${data.recipientId}`);
       if (recipientSocketId) {
-        chatNamespace.to(recipientSocketId).emit('typing:start', { conversationId, userId });
-        // Auto-expire after 3s
+        chatNamespace.to(recipientSocketId).emit('typing:start', { conversationId: data.conversationId, userId });
         setTimeout(() => {
-          chatNamespace.to(recipientSocketId).emit('typing:stop', { conversationId, userId });
+          chatNamespace.to(recipientSocketId).emit('typing:stop', { conversationId: data.conversationId, userId });
         }, TYPING_TTL * 1000);
       }
     });
 
     // typing:stop
-    socket.on('typing:stop', async (data: { conversationId: string }) => {
-      const { conversationId } = data;
-      const recipientSocketId = await findRecipientSocketId(conversationId, userId);
+    socket.on('typing:stop', async (data: { conversationId: string; recipientId: string }) => {
+      if (!data.recipientId) return;
+      const recipientSocketId = await redis.get(`socket:${data.recipientId}`);
       if (recipientSocketId) {
-        chatNamespace.to(recipientSocketId).emit('typing:stop', { conversationId, userId });
+        chatNamespace.to(recipientSocketId).emit('typing:stop', { conversationId: data.conversationId, userId });
       }
     });
 
@@ -124,21 +122,6 @@ export function registerChatHandlers(chatNamespace: Namespace): void {
       broadcastUserStatus(chatNamespace, userId, false, now.toISOString());
     });
   });
-}
-
-async function findRecipientSocketId(conversationId: string, senderId: string): Promise<string | null> {
-  // We need to find the other participant's socket.
-  // Since conversationId = SHA-256(sort([id1, id2]).join(':')), we can't reverse it.
-  // Instead, we look up all online users and check which one forms this conversationId.
-  const onlineUserIds = await redis.smembers('online_users');
-  for (const onlineUserId of onlineUserIds) {
-    if (onlineUserId === senderId) continue;
-    const computed = computeConversationId(senderId, onlineUserId);
-    if (computed === conversationId) {
-      return redis.get(`socket:${onlineUserId}`);
-    }
-  }
-  return null;
 }
 
 async function broadcastUserStatus(namespace: Namespace, userId: string, online: boolean, lastSeen?: string): Promise<void> {

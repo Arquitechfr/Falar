@@ -68,7 +68,10 @@ export async function getMessages(
   conversationId: string,
   query: { before?: string; limit: number },
 ): Promise<{ messages: unknown[]; hasMore: boolean }> {
-  const filter: Record<string, unknown> = { conversationId };
+  const filter: Record<string, unknown> = {
+    conversationId,
+    $or: [{ senderId: userId }, { recipientId: userId }],
+  };
 
   if (query.before) {
     filter.serverTimestamp = { $lt: new Date(query.before) };

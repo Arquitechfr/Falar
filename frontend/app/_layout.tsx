@@ -34,7 +34,7 @@ const queryClient = new QueryClient({
 });
 
 function RootNavigator() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, keysReady } = useAuth();
   const segments = useSegments();
   const router = useRouter();
   const { colors } = useTheme();
@@ -48,10 +48,18 @@ function RootNavigator() {
 
     if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup) {
       router.replace('/(auth)/phone');
-    } else if (isAuthenticated && (inAuthGroup || inOnboardingGroup)) {
+      return;
+    }
+
+    if (isAuthenticated && !keysReady && !inAuthGroup && !inOnboardingGroup) {
+      router.replace('/(auth)/unlock');
+      return;
+    }
+
+    if (isAuthenticated && keysReady && (inAuthGroup || inOnboardingGroup)) {
       router.replace('/(main)/conversations');
     }
-  }, [isAuthenticated, isLoading, rootSegment]);
+  }, [isAuthenticated, isLoading, keysReady, rootSegment]);
 
   if (isLoading) {
     return (

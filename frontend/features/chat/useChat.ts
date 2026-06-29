@@ -193,21 +193,21 @@ export function useChat({ conversationId, recipientId, recipientPubKey }: UseCha
     if (typingDebounceRef.current) clearTimeout(typingDebounceRef.current);
     typingDebounceRef.current = setTimeout(() => {
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      socket.emit('typing:start', { conversationId });
+      socket.emit('typing:start', { conversationId, recipientId });
       typingTimeoutRef.current = setTimeout(() => {
         const s = getSocket();
-        if (s) s.emit('typing:stop', { conversationId });
+        if (s) s.emit('typing:stop', { conversationId, recipientId });
       }, 2000);
     }, 300);
-  }, [conversationId]);
+  }, [conversationId, recipientId]);
 
   const sendTypingStop = useCallback(() => {
     const socket = getSocket();
     if (!socket) return;
     if (typingDebounceRef.current) clearTimeout(typingDebounceRef.current);
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    socket.emit('typing:stop', { conversationId });
-  }, [conversationId]);
+    socket.emit('typing:stop', { conversationId, recipientId });
+  }, [conversationId, recipientId]);
 
   const markAsRead = useCallback(
     (messageIds: string[]) => {

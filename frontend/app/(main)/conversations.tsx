@@ -139,7 +139,7 @@ export default function ConversationsScreen() {
             </Text>
           </View>
           <Pressable onPress={() => router.push('/(main)/profile')} hitSlop={12}>
-            <Avatar name={user?.displayName || '?'} size={40} avatarUrl={undefined} />
+            <Avatar name={user?.displayName || '?'} size={40} avatarUrl={user?.avatarUrl} />
           </Pressable>
         </View>
         <SearchBar

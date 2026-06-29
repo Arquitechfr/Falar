@@ -75,14 +75,68 @@ async function fetchWithTimeout(url: string, options: RequestConfig = {}, timeou
   }
 }
 
+interface XhrResponse {
+  status: number;
+  ok: boolean;
+  data: any;
+}
+
+function fetchFormDataWithXhr(
+  url: string,
+  method: string,
+  headers: Record<string, string>,
+  body: FormData,
+  timeout = TIMEOUT,
+): Promise<XhrResponse> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url);
+
+    for (const [key, value] of Object.entries(headers)) {
+      xhr.setRequestHeader(key, value);
+    }
+
+    xhr.responseType = 'text';
+    xhr.timeout = timeout;
+
+    xhr.onload = () => {
+      let data: any;
+      try {
+        data = JSON.parse(xhr.responseText);
+      } catch {
+        data = xhr.responseText;
+      }
+      resolve({
+        status: xhr.status,
+        ok: xhr.status >= 200 && xhr.status < 300,
+        data,
+      });
+    };
+
+    xhr.onerror = () => reject(new Error('Network error or timeout'));
+    xhr.ontimeout = () => reject(new Error('Network error or timeout'));
+
+    xhr.send(body);
+  });
+}
+
 async function request<T = any>(endpoint: string, config: RequestConfig = {}): Promise<ApiResponse<T>> {
   const url = `${BASE_URL}${endpoint}`;
   const token = await getAccessToken();
 
+  const isFormData = config.body instanceof FormData;
+  console.log('[api] request:', endpoint, '| isFormData:', isFormData, '| body type:', typeof config.body);
+
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...config.headers,
   };
+
+  if (!isFormData) {
+    headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+  } else {
+    delete headers['Content-Type'];
+  }
+  console.log('[api] headers:', JSON.stringify(headers));
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -91,14 +145,55 @@ async function request<T = any>(endpoint: string, config: RequestConfig = {}): P
   const options: RequestConfig = {
     method: config.method || 'GET',
     headers,
-    body: config.body ? JSON.stringify(config.body) : undefined,
+    body: isFormData ? config.body : config.body ? JSON.stringify(config.body) : undefined,
     timeout: config.timeout,
   };
 
+  if (isFormData) {
+    console.log('[api] using XHR for FormData upload to:', url);
+    let xhrRes: XhrResponse;
+    try {
+      xhrRes = await fetchFormDataWithXhr(url, options.method || 'POST', headers, config.body, options.timeout);
+      console.log('[api] XHR response status:', xhrRes.status);
+    } catch (error) {
+      console.error('[api] XHR error:', error);
+      throw error;
+    }
+
+    // Handle 401 - refresh token
+    if (xhrRes.status === 401) {
+      if (!isRefreshing) {
+        isRefreshing = true;
+        refreshPromise = refreshAccessToken();
+      }
+      const newToken = await refreshPromise;
+      isRefreshing = false;
+      refreshPromise = null;
+
+      if (newToken) {
+        headers.Authorization = `Bearer ${newToken}`;
+        xhrRes = await fetchFormDataWithXhr(url, options.method || 'POST', headers, config.body, options.timeout);
+      } else {
+        useCryptoStore.getState().clearKeys();
+        useAuthStore.getState().logout();
+        throw new Error('Session expired');
+      }
+    }
+
+    console.log('[api] XHR response data:', JSON.stringify(xhrRes.data).slice(0, 200));
+    if (!xhrRes.ok) {
+      throw { response: { status: xhrRes.status, data: xhrRes.data } };
+    }
+    return { data: xhrRes.data, status: xhrRes.status, ok: xhrRes.ok };
+  }
+
   let response: Response;
   try {
+    console.log('[api] fetching:', url, '| method:', options.method, '| body is FormData:', options.body instanceof FormData);
     response = await fetchWithTimeout(url, options);
+    console.log('[api] response status:', response.status);
   } catch (error) {
+    console.error('[api] fetch error:', error);
     throw new Error('Network error or timeout');
   }
 
@@ -124,6 +219,7 @@ async function request<T = any>(endpoint: string, config: RequestConfig = {}): P
   }
 
   const data = await response.json();
+  console.log('[api] response data:', JSON.stringify(data).slice(0, 200));
 
   if (!response.ok) {
     throw { response: { status: response.status, data } };

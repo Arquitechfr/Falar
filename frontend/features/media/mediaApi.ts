@@ -9,9 +9,7 @@ export async function uploadMedia(fileUri: string): Promise<string | null> {
       name: 'media.enc',
     } as unknown as Blob);
 
-    const res = await api.post<{ mediaUrl: string }>('/media/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const res = await api.post<{ mediaUrl: string }>('/media/upload', formData);
 
     return res.data.mediaUrl;
   } catch {

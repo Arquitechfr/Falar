@@ -57,24 +57,26 @@ export default function ProfileScreen() {
     if (result.canceled) return;
 
     const asset = result.assets[0];
+    console.log('[avatar] asset picked:', { uri: asset.uri, mimeType: asset.mimeType, fileName: asset.fileName, width: asset.width, height: asset.height });
     setSaving(true);
     try {
       const formData = new FormData();
       formData.append('file', {
         uri: asset.uri,
-        type: 'image/jpeg',
-        name: 'avatar.jpg',
+        type: asset.mimeType || 'image/jpeg',
+        name: asset.fileName || 'avatar.jpg',
       } as never);
 
+      console.log('[avatar] FormData created, isFormData:', formData instanceof FormData);
       const api = (await import('@/services/api')).default;
-      const res = await api.post('/media/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const res = await api.post('/media/upload', formData);
+      console.log('[avatar] upload response:', res.status, res.data);
       const avatarUrl = res.data.mediaUrl;
       await updateMe({ avatarUrl });
       useAuthStore.getState().login({ ...user!, avatarUrl });
       toast.show('Photo de profil mise à jour', 'success');
-    } catch {
+    } catch (err) {
+      console.error('[avatar] upload failed:', err);
       toast.show('Échec du téléversement', 'error');
     } finally {
       setSaving(false);
@@ -151,34 +153,32 @@ export default function ProfileScreen() {
           <Pressable
             onPress={() => setShowQR(true)}
             style={({ pressed }) => ({
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
               backgroundColor: colors.card,
               borderRadius: radii.md,
               paddingVertical: spacing.md,
-              paddingHorizontal: spacing.lg,
+              paddingHorizontal: spacing.xl,
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <QrCode size={20} color={colors.primary} style={{ marginRight: 6 }} />
-            <Text style={{ ...typography.body, color: colors.primary }}>QR Code</Text>
+            <View style={{ alignItems: 'center' }}>
+              <QrCode size={20} color={colors.primary} style={{ marginBottom: 6 }} />
+              <Text style={{ ...typography.body, color: colors.primary }}>QR Code</Text>
+            </View>
           </Pressable>
           <Pressable
             onPress={handleShare}
             style={({ pressed }) => ({
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
               backgroundColor: colors.card,
               borderRadius: radii.md,
               paddingVertical: spacing.md,
-              paddingHorizontal: spacing.lg,
+              paddingHorizontal: spacing.xl,
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <ShareIcon size={20} color={colors.primary} style={{ marginRight: 6 }} />
-            <Text style={{ ...typography.body, color: colors.primary }}>Partager</Text>
+            <View style={{ alignItems: 'center' }}>
+              <ShareIcon size={20} color={colors.primary} style={{ marginBottom: 6 }} />
+              <Text style={{ ...typography.body, color: colors.primary }}>Partager</Text>
+            </View>
           </Pressable>
         </View>
 

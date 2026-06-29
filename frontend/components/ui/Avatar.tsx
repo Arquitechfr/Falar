@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useMemo } from 'react';
 import { View, Text, Image, Pressable, ViewStyle } from 'react-native';
 import { Defs, LinearGradient, Rect, Stop, Svg } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
@@ -36,7 +36,7 @@ export function Avatar({
   const initials = getInitials(name);
   const fontSize = size * 0.36;
   const dotSize = Math.max(8, size * 0.18);
-  const gradientId = useRef(`avatar-${Math.random().toString(36).slice(2, 10)}`).current;
+  const gradientId = useMemo(() => `avatar-${name}-${size}`, [name, size]);
 
   const content = (
     <View style={{ width: size, height: size, ...style }}>

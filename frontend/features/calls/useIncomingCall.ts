@@ -14,9 +14,11 @@ interface IncomingCallData {
 
 export function useIncomingCall() {
   const router = useRouter();
-  const { initIncoming, state } = useCallStore();
+  const initIncoming = useCallStore((s) => s.initIncoming);
+  const state = useCallStore((s) => s.state);
   const stateRef = useRef(state);
   stateRef.current = state;
+  const isNavigatingRef = useRef(false);
 
   useEffect(() => {
     const registerListeners = () => {
@@ -25,6 +27,9 @@ export function useIncomingCall() {
 
       const onIncoming = (data: IncomingCallData) => {
         if (stateRef.current !== 'idle') return;
+
+        if (isNavigatingRef.current) return;
+        isNavigatingRef.current = true;
 
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
         initIncoming(
@@ -52,6 +57,7 @@ export function useIncomingCall() {
           useCallStore.getState().setCallState('ended');
           setTimeout(() => {
             useCallStore.getState().reset();
+            isNavigatingRef.current = false;
             router.back();
           }, 500);
         }
@@ -63,6 +69,7 @@ export function useIncomingCall() {
           useCallStore.getState().setCallState('ended');
           setTimeout(() => {
             useCallStore.getState().reset();
+            isNavigatingRef.current = false;
             router.back();
           }, 500);
         }

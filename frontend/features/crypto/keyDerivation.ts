@@ -11,11 +11,13 @@ export interface Keypair {
   publicKeyBase64: string;
 }
 
-export async function deriveKeypair(password: string, phone: string): Promise<Keypair> {
+export async function deriveKeypair(password: string, phone: string, keySalt?: string): Promise<Keypair> {
   return new Promise((resolve) => {
     InteractionManager.runAfterInteractions(() => {
       const encoder = new TextEncoder();
-      const salt = encoder.encode(`falar:v1:${phone}`);
+      const salt = keySalt
+        ? encoder.encode(`falar:v2:${phone}:${keySalt}`)
+        : encoder.encode(`falar:v1:${phone}`);
       const masterKey = scrypt(encoder.encode(password), salt, SCRYPT_PARAMS);
       const publicKey = x25519.getPublicKey(masterKey);
       resolve({

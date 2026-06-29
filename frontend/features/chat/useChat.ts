@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useMemo, InteractionManager } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getMessages, sendMessage as apiSendMessage, updateMessageStatus, type Message } from './chatApi';
 import { useChatStore, type ChatMessage } from './chatStore';
@@ -27,7 +27,13 @@ function toChatMessage(msg: Message, privateKey: Uint8Array | null, recipientPub
 
 export function useChat({ conversationId, recipientId, recipientPubKey }: UseChatParams) {
   const privateKey = useCryptoStore((s) => s.privateKey);
-  const { messages, isTyping, addMessage, updateMessage, setMessages, setTyping, clear } = useChatStore();
+  const messages = useChatStore((s) => s.messages);
+  const isTyping = useChatStore((s) => s.isTyping);
+  const addMessage = useChatStore((s) => s.addMessage);
+  const updateMessage = useChatStore((s) => s.updateMessage);
+  const setMessages = useChatStore((s) => s.setMessages);
+  const setTyping = useChatStore((s) => s.setTyping);
+  const clear = useChatStore((s) => s.clear);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cleanupRef = useRef<{ messages: ChatMessage[] }>({
     messages: [],
@@ -49,10 +55,12 @@ export function useChat({ conversationId, recipientId, recipientPubKey }: UseCha
   useEffect(() => {
     if (query.data) {
       const allMessages = query.data.pages.flatMap((p) => p.messages);
-      const chatMessages = allMessages
-        .map((m) => toChatMessage(m, privateKey, recipientPubKey))
-        .reverse();
-      setMessages(chatMessages);
+      InteractionManager.runAfterInteractions(() => {
+        const chatMessages = allMessages
+          .map((m) => toChatMessage(m, privateKey, recipientPubKey))
+          .reverse();
+        setMessages(chatMessages);
+      });
     }
   }, [query.data, privateKey, recipientPubKey, setMessages]);
 
@@ -175,43 +183,56 @@ export function useChat({ conversationId, recipientId, recipientPubKey }: UseCha
     [messages, recipientId, updateMessage],
   );
 
+  const typingDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const sendTypingStart = useCallback(() => {
     const socket = getSocket();
     if (!socket) return;
-    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    socket.emit('typing:start', { conversationId });
-    typingTimeoutRef.current = setTimeout(() => {
-      const s = getSocket();
-      if (s) s.emit('typing:stop', { conversationId });
-    }, 2000);
+
+    if (typingDebounceRef.current) clearTimeout(typingDebounceRef.current);
+    typingDebounceRef.current = setTimeout(() => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      socket.emit('typing:start', { conversationId });
+      typingTimeoutRef.current = setTimeout(() => {
+        const s = getSocket();
+        if (s) s.emit('typing:stop', { conversationId });
+      }, 2000);
+    }, 300);
   }, [conversationId]);
 
   const sendTypingStop = useCallback(() => {
     const socket = getSocket();
     if (!socket) return;
+    if (typingDebounceRef.current) clearTimeout(typingDebounceRef.current);
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     socket.emit('typing:stop', { conversationId });
   }, [conversationId]);
 
   const markAsRead = useCallback(
     (messageIds: string[]) => {
-      for (const id of messageIds) {
-        updateMessageStatus(id, 'read').catch(() => {});
-      }
+      if (messageIds.length === 0) return;
+      InteractionManager.runAfterInteractions(() => {
+        for (const id of messageIds) {
+          updateMessageStatus(id, 'read').catch(() => {});
+        }
+      });
     },
     [],
   );
 
-  return {
-    messages,
-    isTyping,
-    hasMore: query.hasNextPage,
-    fetchNextPage: query.fetchNextPage,
-    isFetchingNextPage: query.isFetchingNextPage,
-    sendText,
-    retryMessage,
-    sendTypingStart,
-    sendTypingStop,
-    markAsRead,
-  };
+  return useMemo(
+    () => ({
+      messages,
+      isTyping,
+      hasMore: query.hasNextPage,
+      fetchNextPage: query.fetchNextPage,
+      isFetchingNextPage: query.isFetchingNextPage,
+      sendText,
+      retryMessage,
+      sendTypingStart,
+      sendTypingStop,
+      markAsRead,
+    }),
+    [messages, isTyping, query.hasNextPage, query.fetchNextPage, query.isFetchingNextPage, sendText, retryMessage, sendTypingStart, sendTypingStop, markAsRead],
+  );
 }

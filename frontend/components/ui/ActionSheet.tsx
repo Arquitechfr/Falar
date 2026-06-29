@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, useCallback, type ReactNode } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -60,10 +60,13 @@ export function ActionSheet({ visible, onClose, title, actions }: ActionSheetPro
 
   if (!shouldRender) return null;
 
-  const handlePress = (action: ActionSheetItem) => {
-    action.onPress();
-    onClose();
-  };
+  const handlePress = useCallback(
+    (action: ActionSheetItem) => {
+      action.onPress();
+      onClose();
+    },
+    [onClose],
+  );
 
   return (
     <View

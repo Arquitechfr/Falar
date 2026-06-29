@@ -74,7 +74,7 @@ export function MessageInput({ onSend, onTypingStart, onTypingStop }: MessageInp
       }}
     >
       <Pressable
-        onPress={() => {}}
+        disabled
         hitSlop={8}
         style={{
           width: 36,
@@ -84,6 +84,7 @@ export function MessageInput({ onSend, onTypingStart, onTypingStop }: MessageInp
           justifyContent: 'center',
           marginBottom: 4,
           marginRight: spacing.sm,
+          opacity: 0.4,
         }}
       >
         <Paperclip size={22} color={colors.textSecondary} />

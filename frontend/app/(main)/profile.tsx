@@ -7,6 +7,7 @@ import { SafeScreen } from '@/components/SafeScreen';
 import { useAuthStore } from '@/features/auth/authStore';
 import { useAuth } from '@/features/auth/useAuth';
 import { updateMe } from '@/features/users/usersApi';
+import { logger } from '@/services/api';
 import { useTheme } from '@/hooks/useTheme';
 import { useToast } from '@/components/ui/Toast';
 import { typography } from '@/constants/typography';
@@ -57,7 +58,7 @@ export default function ProfileScreen() {
     if (result.canceled) return;
 
     const asset = result.assets[0];
-    console.log('[avatar] asset picked:', { uri: asset.uri, mimeType: asset.mimeType, fileName: asset.fileName, width: asset.width, height: asset.height });
+    logger.log('[avatar] asset picked:', { uri: asset.uri, mimeType: asset.mimeType, fileName: asset.fileName, width: asset.width, height: asset.height });
     setSaving(true);
     try {
       const formData = new FormData();
@@ -67,16 +68,16 @@ export default function ProfileScreen() {
         name: asset.fileName || 'avatar.jpg',
       } as never);
 
-      console.log('[avatar] FormData created, isFormData:', formData instanceof FormData);
+      logger.log('[avatar] FormData created, isFormData:', formData instanceof FormData);
       const api = (await import('@/services/api')).default;
       const res = await api.post('/media/upload', formData);
-      console.log('[avatar] upload response:', res.status, res.data);
+      logger.log('[avatar] upload response:', res.status, res.data);
       const avatarUrl = res.data.mediaUrl;
       await updateMe({ avatarUrl });
       useAuthStore.getState().login({ ...user!, avatarUrl });
       toast.show('Photo de profil mise à jour', 'success');
     } catch (err) {
-      console.error('[avatar] upload failed:', err);
+      logger.error('[avatar] upload failed:', err);
       toast.show('Échec du téléversement', 'error');
     } finally {
       setSaving(false);

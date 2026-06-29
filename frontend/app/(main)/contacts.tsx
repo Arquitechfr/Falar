@@ -1,5 +1,5 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import { View, Text, Pressable, SectionList, RefreshControl, Share } from 'react-native';
+import { useState, useCallback, useMemo, useEffect, memo } from 'react';
+import { View, Text, Pressable, SectionList, RefreshControl, Share, SectionListRenderItem, SectionListData } from 'react-native';
 import { List } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { SafeScreen } from '@/components/SafeScreen';
@@ -21,6 +21,116 @@ import { computeConversationId } from '@/utils/conversationId';
 import { useAuthStore } from '@/features/auth/authStore';
 import { useRouter } from 'expo-router';
 import { Search as SearchIcon, UserPlus, Share as ShareIcon, Users as UsersIcon, MessageCircle } from '@/components/ui/Icons';
+
+const keyExtractor = (item: SyncedContact, index: number) => `${item.contactName || item.displayName || item.phone}-${index}`;
+
+const contentContainerStyle = { paddingBottom: 100 };
+
+const Separator = memo(function Separator() {
+  const { colors } = useTheme();
+  return <View style={{ height: 0.5, backgroundColor: colors.border, marginLeft: 88 }} />;
+});
+
+interface ContactRowProps {
+  item: SyncedContact;
+  onPress: (contact: SyncedContact) => void;
+  onInvite: (contact: SyncedContact) => void;
+}
+
+const ContactRow = memo(function ContactRow({ item, onPress, onInvite }: ContactRowProps) {
+  const { colors } = useTheme();
+  const handlePress = useCallback(() => {
+    if (item.isMember) onPress(item);
+    else onInvite(item);
+  }, [item, onPress, onInvite]);
+  const handleMessage = useCallback(
+    (e: any) => {
+      e?.stopPropagation?.();
+      onPress(item);
+    },
+    [item, onPress],
+  );
+  const handleInvite = useCallback(
+    (e: any) => {
+      e?.stopPropagation?.();
+      onInvite(item);
+    },
+    [item, onInvite],
+  );
+
+  return (
+    <List.Item
+      title={item.contactName}
+      titleStyle={{ color: colors.textPrimary, fontFamily: 'Outfit_600SemiBold', fontSize: 17 }}
+      description={item.phone}
+      descriptionStyle={{ color: colors.textSecondary, fontFamily: 'Outfit_400Regular', fontSize: 14 }}
+      descriptionNumberOfLines={1}
+      left={() => (
+        <View style={{ justifyContent: 'center' }}>
+          <Avatar name={item.displayName || item.contactName} size={56} avatarUrl={item.avatarUrl || undefined} />
+        </View>
+      )}
+      right={() => (
+        <View style={{ flexDirection: 'column', justifyContent: 'center', gap: 4 }}>
+          {item.isMember ? (
+            <Pressable
+              onPress={handleMessage}
+              style={({ pressed }) => ({
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 12,
+                paddingVertical: 4,
+                backgroundColor: pressed ? colors.primaryDark : colors.primary,
+                borderRadius: 20,
+              })}
+            >
+              <MessageCircle size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+              <Text style={{ ...typography.caption, color: '#FFFFFF', fontWeight: '600' }}>Message</Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              onPress={handleInvite}
+              style={({ pressed }) => ({
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 12,
+                paddingVertical: 4,
+                backgroundColor: pressed ? colors.primaryDark : colors.primary,
+                borderRadius: 20,
+              })}
+            >
+              <ShareIcon size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+              <Text style={{ ...typography.caption, color: '#FFFFFF', fontWeight: '600' }}>Inviter</Text>
+            </Pressable>
+          )}
+          {item.isMember && item.username && (
+            <Text style={{ ...typography.micro, color: colors.textTertiary }} numberOfLines={1}>
+              @{item.username}
+            </Text>
+          )}
+        </View>
+      )}
+      onPress={handlePress}
+      style={{ paddingVertical: spacing.sm, minHeight: 80 }}
+    />
+  );
+});
+
+const SectionHeader = memo(function SectionHeader({ title }: { title: string }) {
+  const { colors } = useTheme();
+  return (
+    <View
+      style={{
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.sm,
+        paddingBottom: 4,
+        backgroundColor: colors.background,
+      }}
+    >
+      <Text style={{ ...typography.captionMedium, color: colors.textSecondary }}>{title}</Text>
+    </View>
+  );
+});
 
 export default function ContactsScreen() {
   const router = useRouter();
@@ -113,6 +223,38 @@ export default function ContactsScreen() {
     }
   }, []);
 
+  const renderItem: SectionListRenderItem<SyncedContact, { title: string; data: SyncedContact[] }> = useCallback(
+    ({ item }) => <ContactRow item={item} onPress={handleContactPress} onInvite={handleInvite} />,
+    [handleContactPress, handleInvite],
+  );
+
+  const renderSectionHeader = useCallback(
+    ({ section }: { section: SectionListData<SyncedContact, { title: string; data: SyncedContact[] }> }) => (
+      <SectionHeader title={section.title} />
+    ),
+    [],
+  );
+
+  const listEmptyComponent = useMemo(
+    () =>
+      search ? (
+        <EmptyState
+          icon={<SearchIcon size={32} color={colors.textSecondary} />}
+          title="Aucun contact trouvé"
+          description={`Aucun contact ne correspond à "${search}"`}
+        />
+      ) : initialized && contacts.length === 0 ? (
+        <EmptyState
+          icon={<UserPlus size={32} color={colors.textSecondary} />}
+          title="Aucun contact"
+          description="Synchronisez votre carnet d'adresses pour voir vos contacts sur Falar."
+          actionLabel="Synchroniser"
+          onAction={handleSync}
+        />
+      ) : null,
+    [search, initialized, contacts.length, colors.textSecondary, handleSync],
+  );
+
   if (isLoading && !refreshing && contacts.length === 0) {
     return (
       <SafeScreen edges={['top', 'left', 'right']}>
@@ -167,105 +309,12 @@ export default function ContactsScreen() {
 
       <SectionList
         sections={sections}
-        keyExtractor={(item, index) => `${item.contactName}-${index}`}
-        renderItem={({ item }) => (
-          <List.Item
-            title={item.contactName}
-            titleStyle={{ color: colors.textPrimary, fontFamily: 'Outfit_600SemiBold', fontSize: 17 }}
-            description={item.phone}
-            descriptionStyle={{ color: colors.textSecondary, fontFamily: 'Outfit_400Regular', fontSize: 14 }}
-            descriptionNumberOfLines={1}
-            left={() => (
-              <View style={{ justifyContent: 'center' }}>
-                <Avatar
-                  name={item.displayName || item.contactName}
-                  size={56}
-                  avatarUrl={item.avatarUrl || undefined}
-                />
-              </View>
-            )}
-            right={() => (
-              <View style={{ flexDirection: 'column', justifyContent: 'center', gap: 4 }}>
-                {item.isMember ? (
-                  <Pressable
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      handleContactPress(item);
-                    }}
-                    style={({ pressed }) => ({
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      paddingHorizontal: 12,
-                      paddingVertical: 4,
-                      backgroundColor: pressed ? colors.primaryDark : colors.primary,
-                      borderRadius: 20,
-                    })}
-                  >
-                    <MessageCircle size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
-                    <Text style={{ ...typography.caption, color: '#FFFFFF', fontWeight: '600' }}>
-                      Message
-                    </Text>
-                  </Pressable>
-                ) : (
-                  <Pressable
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      handleInvite(item);
-                    }}
-                    style={({ pressed }) => ({
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      paddingHorizontal: 12,
-                      paddingVertical: 4,
-                      backgroundColor: pressed ? colors.primaryDark : colors.primary,
-                      borderRadius: 20,
-                    })}
-                  >
-                    <ShareIcon size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
-                    <Text style={{ ...typography.caption, color: '#FFFFFF', fontWeight: '600' }}>
-                      Inviter
-                    </Text>
-                  </Pressable>
-                )}
-                {item.isMember && item.username && (
-                  <Text style={{ ...typography.micro, color: colors.textTertiary }} numberOfLines={1}>
-                    @{item.username}
-                  </Text>
-                )}
-              </View>
-            )}
-            onPress={() => item.isMember ? handleContactPress(item) : handleInvite(item)}
-            style={{ paddingVertical: spacing.sm, minHeight: 80 }}
-          />
-        )}
-        renderSectionHeader={({ section: { title } }) => (
-          <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: 4, backgroundColor: colors.background }}>
-            <Text style={{ ...typography.captionMedium, color: colors.textSecondary }}>
-              {title}
-            </Text>
-          </View>
-        )}
-        ItemSeparatorComponent={() => (
-          <View style={{ height: 0.5, backgroundColor: colors.border, marginLeft: 88 }} />
-        )}
-        ListEmptyComponent={
-          search ? (
-            <EmptyState
-              icon={<SearchIcon size={32} color={colors.textSecondary} />}
-              title="Aucun contact trouvé"
-              description={`Aucun contact ne correspond à "${search}"`}
-            />
-          ) : initialized && contacts.length === 0 ? (
-            <EmptyState
-              icon={<UserPlus size={32} color={colors.textSecondary} />}
-              title="Aucun contact"
-              description="Synchronisez votre carnet d'adresses pour voir vos contacts sur Falar."
-              actionLabel="Synchroniser"
-              onAction={handleSync}
-            />
-          ) : null
-        }
-        contentContainerStyle={{ paddingBottom: 100 }}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
+        ItemSeparatorComponent={Separator}
+        ListEmptyComponent={listEmptyComponent}
+        contentContainerStyle={contentContainerStyle}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

@@ -1,4 +1,4 @@
-import { useCallback, type ReactNode } from 'react';
+import { useCallback, memo, useMemo, type ReactNode } from 'react';
 import { View, Pressable, Text, ViewStyle } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -36,7 +36,7 @@ interface BottomTabBarProps {
 
 const SPRING_CONFIG = { damping: 15, stiffness: 300 };
 
-function TabItem({
+const TabItem = memo(function TabItem({
   route,
   isFocused,
   descriptor,
@@ -93,7 +93,7 @@ function TabItem({
   );
 }
 
-export function BottomTabBar({ state, descriptors, navigation, style }: BottomTabBarProps) {
+export const BottomTabBar = memo(function BottomTabBar({ state, descriptors, navigation, style }: BottomTabBarProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -113,8 +113,9 @@ export function BottomTabBar({ state, descriptors, navigation, style }: BottomTa
     [navigation],
   );
 
-  const visibleRoutes = state.routes.filter(
-    (route) => descriptors[route.key]?.options?.tabBarIcon != null,
+  const visibleRoutes = useMemo(
+    () => state.routes.filter((route) => descriptors[route.key]?.options?.tabBarIcon != null),
+    [state.routes, descriptors],
   );
 
   return (
@@ -144,4 +145,4 @@ export function BottomTabBar({ state, descriptors, navigation, style }: BottomTa
       })}
     </View>
   );
-}
+});

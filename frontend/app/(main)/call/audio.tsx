@@ -17,6 +17,7 @@ import { useWebRTC } from '@/features/calls/useWebRTC';
 import { useCallStore } from '@/features/calls/callStore';
 import { startCall as startCallApi } from '@/features/calls/callsApi';
 import { getSocket } from '@/services/socket';
+import { logger } from '@/services/api';
 
 const SPRING_CONFIG = { damping: 15, stiffness: 300, mass: 0.8 };
 
@@ -101,7 +102,7 @@ export default function AudioCallScreen() {
         await webrtc.startOutgoingCall();
       } catch (err) {
         if (!cancelled) {
-          console.error('[AudioCall] init error:', err);
+          logger.error('[AudioCall] init error:', err);
           setInitError('Impossible de démarrer l\'appel');
         }
       }

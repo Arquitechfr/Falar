@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useMemo, useCallback, useRef, memo } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -25,9 +25,18 @@ interface MessageBubbleProps {
   onLongPress?: () => void;
 }
 
-export function MessageBubble({ message, isMine, onRetry, onReply, onLongPress }: MessageBubbleProps) {
+export const MessageBubble = memo(function MessageBubble({ message, isMine, onRetry, onReply, onLongPress }: MessageBubbleProps) {
   const { colors } = useTheme();
   const translateX = useSharedValue(0);
+
+  const onReplyRef = useRef(onReply);
+  onReplyRef.current = onReply;
+  const onLongPressRef = useRef(onLongPress);
+  onLongPressRef.current = onLongPress;
+  const onRetryRef = useRef(onRetry);
+  onRetryRef.current = onRetry;
+  const messageRef = useRef(message);
+  messageRef.current = message;
 
   const time = new Date(message.serverTimestamp || message.clientTimestamp).toLocaleTimeString(
     'fr-FR',
@@ -37,32 +46,50 @@ export function MessageBubble({ message, isMine, onRetry, onReply, onLongPress }
   const isUnread = message.decryptedText === '[message illisible]';
   const status = message.optimisticStatus || message.status;
 
-  const panGesture = Gesture.Pan()
-    .activeActivationDistance(10)
-    .onUpdate((e) => {
-      const direction = isMine ? -1 : 1;
-      translateX.value = Math.max(0, e.translationX * direction) * direction;
-    })
-    .onEnd((e) => {
-      const direction = isMine ? -1 : 1;
-      const shouldReply = Math.abs(e.translationX) > 60 && e.translationX * direction > 0;
-      if (shouldReply && onReply) {
-        runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
-        runOnJS(onReply)(message);
-      }
-      translateX.value = withSpring(0, SPRING_CONFIG);
-    });
+  const dispatchReply = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onReplyRef.current?.(messageRef.current);
+  }, []);
 
-  const longPressGesture = Gesture.LongPress()
-    .minDuration(400)
-    .onStart(() => {
-      if (onLongPress) {
-        runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
-        runOnJS(onLongPress)();
-      }
-    });
+  const dispatchLongPress = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onLongPressRef.current?.();
+  }, []);
 
-  const composedGesture = Gesture.Race(panGesture, longPressGesture);
+  const panGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeActivationDistance(20)
+        .failOffsetY([-5, 5])
+        .onUpdate((e) => {
+          const direction = isMine ? -1 : 1;
+          translateX.value = Math.max(0, e.translationX * direction) * direction;
+        })
+        .onEnd((e) => {
+          const direction = isMine ? -1 : 1;
+          const shouldReply = Math.abs(e.translationX) > 60 && e.translationX * direction > 0;
+          if (shouldReply) {
+            runOnJS(dispatchReply)();
+          }
+          translateX.value = withSpring(0, SPRING_CONFIG);
+        }),
+    [isMine, translateX, dispatchReply],
+  );
+
+  const longPressGesture = useMemo(
+    () =>
+      Gesture.LongPress()
+        .minDuration(400)
+        .onStart(() => {
+          runOnJS(dispatchLongPress)();
+        }),
+    [dispatchLongPress],
+  );
+
+  const composedGesture = useMemo(
+    () => Gesture.Race(panGesture, longPressGesture),
+    [panGesture, longPressGesture],
+  );
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
@@ -70,8 +97,8 @@ export function MessageBubble({ message, isMine, onRetry, onReply, onLongPress }
 
   const handleRetry = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onRetry?.();
-  }, [onRetry]);
+    onRetryRef.current?.();
+  }, []);
 
   const bubbleBg = isMine ? colors.bubbleMine : colors.bubbleOther;
   const textColor = isMine ? '#FFFFFF' : colors.textPrimary;
@@ -131,4 +158,4 @@ export function MessageBubble({ message, isMine, onRetry, onReply, onLongPress }
       </Animated.View>
     </GestureDetector>
   );
-}
+});

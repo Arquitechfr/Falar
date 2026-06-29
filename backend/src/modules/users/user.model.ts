@@ -10,6 +10,7 @@ export interface IUser {
   bio: string;
   username: string;
   deviceToken: string;
+  keySalt: string;
   lastSeen: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -25,6 +26,7 @@ const userSchema = new Schema<IUser>(
     bio: { type: String, default: '', maxlength: 200 },
     username: { type: String, default: '', index: true },
     deviceToken: { type: String, default: '' },
+    keySalt: { type: String, default: '' },
     lastSeen: { type: Date, default: Date.now },
   },
   { timestamps: true },

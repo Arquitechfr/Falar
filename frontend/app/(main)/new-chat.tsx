@@ -1,5 +1,5 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import { View, Text, Pressable, SectionList, RefreshControl, Share } from 'react-native';
+import { useState, useCallback, useMemo, useEffect, memo } from 'react';
+import { View, Text, Pressable, SectionList, RefreshControl, Share, SectionListRenderItem, SectionListData } from 'react-native';
 import { useRouter } from 'expo-router';
 import { List } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
@@ -14,6 +14,89 @@ import type { SyncedContact } from '@/features/contacts/contactsApi';
 import { computeConversationId } from '@/utils/conversationId';
 import { useAuthStore } from '@/features/auth/authStore';
 import { Search as SearchIcon, UserPlus, Share as ShareIcon } from '@/components/ui/Icons';
+
+const keyExtractor = (item: SyncedContact, index: number) => `${item.contactName || item.displayName || item.phone}-${index}`;
+
+const Separator = memo(function Separator() {
+  const { colors } = useTheme();
+  return <View style={{ height: 0.5, backgroundColor: colors.border, marginLeft: 80 }} />;
+});
+
+interface NewChatRowProps {
+  item: SyncedContact;
+  onPress: (contact: SyncedContact) => void;
+  onInvite: (contact: SyncedContact) => void;
+}
+
+const NewChatRow = memo(function NewChatRow({ item, onPress, onInvite }: NewChatRowProps) {
+  const { colors } = useTheme();
+  const handlePress = useCallback(() => {
+    if (item.isMember) onPress(item);
+    else onInvite(item);
+  }, [item, onPress, onInvite]);
+
+  const description = useMemo(() => {
+    if (item.isMember && item.displayName && item.displayName !== item.contactName) {
+      return `${item.displayName}${item.username ? ' · @' + item.username : ''}`;
+    }
+    if (item.isMember && item.username) return '@' + item.username;
+    return '';
+  }, [item]);
+
+  return (
+    <List.Item
+      title={item.contactName}
+      titleStyle={{ color: colors.textPrimary, fontFamily: 'Outfit_600SemiBold', fontSize: 17 }}
+      description={description}
+      descriptionStyle={{ color: colors.textSecondary, fontFamily: 'Outfit_400Regular', fontSize: 13 }}
+      descriptionNumberOfLines={1}
+      left={() => (
+        <View style={{ justifyContent: 'center' }}>
+          <Avatar name={item.displayName || item.contactName} size={48} avatarUrl={item.avatarUrl || undefined} />
+        </View>
+      )}
+      right={() => (
+        <View style={{ justifyContent: 'center' }}>
+          {item.isMember ? (
+            <Badge label="Membre" variant="success" size="sm" />
+          ) : (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 10,
+                paddingVertical: 6,
+                backgroundColor: colors.primary,
+                borderRadius: 16,
+              }}
+            >
+              <ShareIcon size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+              <Text style={{ ...typography.micro, color: '#FFFFFF', fontWeight: '600' }}>Inviter</Text>
+            </View>
+          )}
+        </View>
+      )}
+      onPress={handlePress}
+      style={{ paddingVertical: spacing.sm }}
+    />
+  );
+});
+
+const SectionHeader = memo(function SectionHeader({ title }: { title: string }) {
+  const { colors } = useTheme();
+  return (
+    <View
+      style={{
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.sm,
+        paddingBottom: 4,
+        backgroundColor: colors.background,
+      }}
+    >
+      <Text style={{ ...typography.captionMedium, color: colors.textSecondary }}>{title}</Text>
+    </View>
+  );
+});
 
 export default function NewChatScreen() {
   const router = useRouter();
@@ -95,6 +178,8 @@ export default function NewChatScreen() {
     });
   }, [router]);
 
+  const handleBack = useCallback(() => router.back(), [router]);
+
   const handleInvite = useCallback(async (contact: SyncedContact) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
@@ -106,10 +191,44 @@ export default function NewChatScreen() {
     }
   }, []);
 
+  const renderItem: SectionListRenderItem<SyncedContact, { title: string; data: SyncedContact[] }> = useCallback(
+    ({ item }) => <NewChatRow item={item} onPress={handleContactPress} onInvite={handleInvite} />,
+    [handleContactPress, handleInvite],
+  );
+
+  const renderSectionHeader = useCallback(
+    ({ section }: { section: SectionListData<SyncedContact, { title: string; data: SyncedContact[] }> }) => (
+      <SectionHeader title={section.title} />
+    ),
+    [],
+  );
+
+  const contentContainerStyle = useMemo(() => ({ paddingBottom: spacing.xxl }), []);
+
+  const listEmptyComponent = useMemo(
+    () =>
+      search ? (
+        <EmptyState
+          icon={<SearchIcon size={32} color={colors.textSecondary} />}
+          title="Aucun contact trouvé"
+          description={`Aucun contact ne correspond à "${search}"`}
+        />
+      ) : initialized && contacts.length === 0 ? (
+        <EmptyState
+          icon={<UserPlus size={32} color={colors.textSecondary} />}
+          title="Aucun contact"
+          description="Synchronisez votre carnet d'adresses pour voir vos contacts sur Falar."
+          actionLabel="Synchroniser"
+          onAction={handleSync}
+        />
+      ) : null,
+    [search, initialized, contacts.length, colors.textSecondary, handleSync],
+  );
+
   if (isLoading && !refreshing && contacts.length === 0) {
     return (
       <SafeScreen edges={['top', 'left', 'right']}>
-        <ScreenHeader title="Nouvelle conversation" onBack={() => router.back()} showBack />
+        <ScreenHeader title="Nouvelle conversation" onBack={handleBack} showBack />
         <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.md }}>
           <Skeleton width="100%" height={44} radius={14} />
         </View>
@@ -131,7 +250,7 @@ export default function NewChatScreen() {
   if (permissionDenied) {
     return (
       <SafeScreen edges={['top', 'left', 'right']}>
-        <ScreenHeader title="Nouvelle conversation" onBack={() => router.back()} showBack />
+        <ScreenHeader title="Nouvelle conversation" onBack={handleBack} showBack />
         <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.sm }}>
           <SearchBar
             value={search}
@@ -152,7 +271,7 @@ export default function NewChatScreen() {
 
   return (
     <SafeScreen edges={['top', 'left', 'right']}>
-      <ScreenHeader title="Nouvelle conversation" onBack={() => router.back()} showBack />
+      <ScreenHeader title="Nouvelle conversation" onBack={handleBack} showBack />
       <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.sm }}>
         <SearchBar
           value={search}
@@ -163,76 +282,12 @@ export default function NewChatScreen() {
 
       <SectionList
         sections={sections}
-        keyExtractor={(item, index) => `${item.contactName}-${index}`}
-        renderItem={({ item }) => (
-          <List.Item
-            title={item.contactName}
-            titleStyle={{ color: colors.textPrimary, fontFamily: 'Outfit_600SemiBold', fontSize: 17 }}
-            description={item.isMember && item.displayName && item.displayName !== item.contactName ? `${item.displayName}${item.username ? ' · @' + item.username : ''}` : item.isMember && item.username ? '@' + item.username : ''}
-            descriptionStyle={{ color: colors.textSecondary, fontFamily: 'Outfit_400Regular', fontSize: 13 }}
-            descriptionNumberOfLines={1}
-            left={() => (
-              <View style={{ justifyContent: 'center' }}>
-                <Avatar
-                  name={item.displayName || item.contactName}
-                  size={48}
-                  avatarUrl={item.avatarUrl || undefined}
-                />
-              </View>
-            )}
-            right={() => (
-              <View style={{ justifyContent: 'center' }}>
-                {item.isMember ? (
-                  <Badge label="Membre" variant="success" size="sm" />
-                ) : (
-                  <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingHorizontal: 10,
-                    paddingVertical: 6,
-                    backgroundColor: colors.primary,
-                    borderRadius: 16,
-                  }}>
-                    <ShareIcon size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
-                    <Text style={{ ...typography.micro, color: '#FFFFFF', fontWeight: '600' }}>
-                      Inviter
-                    </Text>
-                  </View>
-                )}
-              </View>
-            )}
-            onPress={() => item.isMember ? handleContactPress(item) : handleInvite(item)}
-            style={{ paddingVertical: spacing.sm }}
-          />
-        )}
-        renderSectionHeader={({ section: { title } }) => (
-          <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: 4, backgroundColor: colors.background }}>
-            <Text style={{ ...typography.captionMedium, color: colors.textSecondary }}>
-              {title}
-            </Text>
-          </View>
-        )}
-        ItemSeparatorComponent={() => (
-          <View style={{ height: 0.5, backgroundColor: colors.border, marginLeft: 80 }} />
-        )}
-        ListEmptyComponent={
-          search ? (
-            <EmptyState
-              icon={<SearchIcon size={32} color={colors.textSecondary} />}
-              title="Aucun contact trouvé"
-              description={`Aucun contact ne correspond à "${search}"`}
-            />
-          ) : initialized && contacts.length === 0 ? (
-            <EmptyState
-              icon={<UserPlus size={32} color={colors.textSecondary} />}
-              title="Aucun contact"
-              description="Synchronisez votre carnet d'adresses pour voir vos contacts sur Falar."
-              actionLabel="Synchroniser"
-              onAction={handleSync}
-            />
-          ) : null
-        }
-        contentContainerStyle={{ paddingBottom: spacing.xxl }}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
+        ItemSeparatorComponent={Separator}
+        ListEmptyComponent={listEmptyComponent}
+        contentContainerStyle={contentContainerStyle}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

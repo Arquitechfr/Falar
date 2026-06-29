@@ -1,6 +1,6 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, memo, useMemo } from 'react';
 import { View, Text, ActivityIndicator, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeScreen } from '@/components/SafeScreen';
@@ -14,8 +14,61 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing } from '@/constants/spacing';
 import { ScreenHeader, Avatar, ActionSheet } from '@/components/ui';
-import { Phone, Video, Trash, Edit } from '@/components/ui/Icons';
+import { Phone, Video, Trash } from '@/components/ui/Icons';
 import { deleteMessage as deleteMessageApi } from '@/features/chat/chatApi';
+
+interface ChatRowProps {
+  item: ChatMessage;
+  prevItem: ChatMessage | undefined;
+  currentUserId: string | undefined;
+  onRetry: (messageId: string) => void;
+  onLongPress: (msg: ChatMessage) => void;
+}
+
+const ChatRow = memo(function ChatRow({ item, prevItem, currentUserId, onRetry, onLongPress }: ChatRowProps) {
+  const { colors, typography } = useTheme();
+  const isMine = item.senderId === currentUserId || item.senderId === 'me';
+  const showDateSeparator =
+    !prevItem ||
+    new Date(prevItem.serverTimestamp || prevItem.clientTimestamp).toDateString() !==
+      new Date(item.serverTimestamp || item.clientTimestamp).toDateString();
+
+  const handleRetry = useCallback(() => {
+    const id = item._id || item.tempId;
+    if (id) onRetry(id);
+  }, [item, onRetry]);
+
+  const handleLongPress = useCallback(() => {
+    onLongPress(item);
+  }, [item, onLongPress]);
+
+  return (
+    <View>
+      {showDateSeparator && (
+        <View style={{ alignItems: 'center', marginVertical: spacing.sm }}>
+          <View
+            style={{
+              backgroundColor: colors.secondaryBackground,
+              borderRadius: 12,
+              paddingHorizontal: spacing.sm,
+              paddingVertical: 4,
+            }}
+          >
+            <Text style={{ ...typography.micro, color: colors.textSecondary }}>
+              {formatDateSeparator(item.serverTimestamp || item.clientTimestamp)}
+            </Text>
+          </View>
+        </View>
+      )}
+      <MessageBubble
+        message={item}
+        isMine={isMine}
+        onRetry={item.optimisticStatus === 'failed' ? handleRetry : undefined}
+        onLongPress={handleLongPress}
+      />
+    </View>
+  );
+});
 
 function formatDateSeparator(ts: string): string {
   const date = new Date(ts);
@@ -38,7 +91,7 @@ export default function ChatScreen() {
     recipientName: string;
   }>();
 
-  const currentUser = useAuthStore((s) => s.user);
+  const currentUserId = useAuthStore((s) => s.user?.id);
   const flashListRef = useRef<FlashList<ChatMessage>>(null);
   const [contextMenuMsg, setContextMenuMsg] = useState<ChatMessage | null>(null);
 
@@ -61,10 +114,10 @@ export default function ChatScreen() {
 
   useEffect(() => {
     const unreadIds = messages
-      .filter((m) => m.senderId !== currentUser?.id && m.status !== 'read')
+      .filter((m) => m.senderId !== currentUserId && m.status !== 'read')
       .map((m) => m._id);
     if (unreadIds.length > 0) markAsRead(unreadIds);
-  }, [messages, currentUser?.id, markAsRead]);
+  }, [messages, currentUserId, markAsRead]);
 
   const handleDeleteMessage = useCallback(async (msg: ChatMessage) => {
     const id = msg._id || msg.tempId;
@@ -77,42 +130,63 @@ export default function ChatScreen() {
     }
   }, []);
 
-  const renderItem = useCallback(({ item, index }: { item: ChatMessage; index: number }) => {
-    const isMine = item.senderId === currentUser?.id || item.senderId === 'me';
-    const prevItem = messages[index + 1];
-    const showDateSeparator = !prevItem ||
-      new Date(prevItem.serverTimestamp || prevItem.clientTimestamp).toDateString() !==
-      new Date(item.serverTimestamp || item.clientTimestamp).toDateString();
+  const handleCloseContextMenu = useCallback(() => setContextMenuMsg(null), [setContextMenuMsg]);
 
-    return (
-      <View>
-        {showDateSeparator && (
-          <View style={{ alignItems: 'center', marginVertical: spacing.sm }}>
-            <View style={{ backgroundColor: colors.secondaryBackground, borderRadius: 12, paddingHorizontal: spacing.sm, paddingVertical: 4 }}>
-              <Text style={{ ...typography.micro, color: colors.textSecondary }}>
-                {formatDateSeparator(item.serverTimestamp || item.clientTimestamp)}
-              </Text>
-            </View>
-          </View>
-        )}
-        <MessageBubble
-          message={item}
-          isMine={isMine}
-          onRetry={
-            item.optimisticStatus === 'failed'
-              ? () => retryMessage(item._id || item.tempId)
-              : undefined
-          }
-          onLongPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            setContextMenuMsg(item);
-          }}
-        />
-      </View>
-    );
-  }, [currentUser?.id, retryMessage, messages, colors, typography]);
+  const handleDeleteContextMessage = useCallback(() => {
+    if (contextMenuMsg) {
+      handleDeleteMessage(contextMenuMsg);
+      setContextMenuMsg(null);
+    }
+  }, [contextMenuMsg, handleDeleteMessage, setContextMenuMsg]);
+
+  const handleRetry = useCallback(
+    (messageId: string) => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      retryMessage(messageId);
+    },
+    [retryMessage],
+  );
+
+  const handleLongPress = useCallback(
+    (msg: ChatMessage) => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      setContextMenuMsg(msg);
+    },
+    [setContextMenuMsg],
+  );
+
+  const renderItem: ListRenderItem<ChatMessage> = useCallback(
+    ({ item, index }) => (
+      <ChatRow
+        item={item}
+        prevItem={messages[index + 1]}
+        currentUserId={currentUserId}
+        onRetry={handleRetry}
+        onLongPress={handleLongPress}
+      />
+    ),
+    [messages, currentUserId, handleRetry, handleLongPress],
+  );
+
+  const keyExtractor = useCallback((item: ChatMessage) => item._id || item.tempId || '', []);
+
+  const handleEndReached = useCallback(() => {
+    if (hasMore) fetchNextPage();
+  }, [hasMore, fetchNextPage]);
+
+  const contentContainerStyle = useMemo(() => ({ paddingVertical: spacing.sm }), []);
 
   const subtitle = isTyping ? 'écrit...' : undefined;
+
+  const handleBack = useCallback(() => router.back(), [router]);
+  const handleAudioCall = useCallback(
+    () => router.push({ pathname: '/(main)/call/audio', params: { recipientName: params.recipientName, recipientId: params.recipientId } }),
+    [router, params.recipientName, params.recipientId],
+  );
+  const handleVideoCall = useCallback(
+    () => router.push({ pathname: '/(main)/call/video', params: { recipientName: params.recipientName, recipientId: params.recipientId } }),
+    [router, params.recipientName, params.recipientId],
+  );
 
   return (
     <SafeScreen edges={['left', 'right']}>
@@ -124,11 +198,11 @@ export default function ChatScreen() {
         <ScreenHeader
           title={params.recipientName || 'Conversation'}
           subtitle={subtitle}
-          onBack={() => router.back()}
+          onBack={handleBack}
           rightActions={
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Pressable
-                onPress={() => router.push({ pathname: '/(main)/call/audio', params: { recipientName: params.recipientName, recipientId: params.recipientId } })}
+                onPress={handleAudioCall}
                 hitSlop={8}
                 style={({ pressed }) => ({
                   width: 32,
@@ -143,7 +217,7 @@ export default function ChatScreen() {
                 <Phone size={20} color={colors.textPrimary} />
               </Pressable>
               <Pressable
-                onPress={() => router.push({ pathname: '/(main)/call/video', params: { recipientName: params.recipientName, recipientId: params.recipientId } })}
+                onPress={handleVideoCall}
                 hitSlop={8}
                 style={({ pressed }) => ({
                   width: 32,
@@ -170,12 +244,13 @@ export default function ChatScreen() {
         <FlashList
           ref={flashListRef}
           data={messages}
-          keyExtractor={(item) => item._id || item.tempId || ''}
+          keyExtractor={keyExtractor}
           renderItem={renderItem}
           inverted
-          onEndReached={() => hasMore && fetchNextPage()}
+          onEndReached={handleEndReached}
           onEndReachedThreshold={0.3}
           estimatedItemSize={60}
+          contentContainerStyle={contentContainerStyle}
           ListFooterComponent={
             isFetchingNextPage ? (
               <View style={{ paddingVertical: spacing.md, alignItems: 'center' }}>
@@ -183,7 +258,6 @@ export default function ChatScreen() {
               </View>
             ) : null
           }
-          contentContainerStyle={{ paddingVertical: spacing.sm }}
         />
 
         {isTyping && <TypingIndicator />}
@@ -196,18 +270,13 @@ export default function ChatScreen() {
 
         <ActionSheet
           visible={contextMenuMsg !== null}
-          onClose={() => setContextMenuMsg(null)}
+          onClose={handleCloseContextMenu}
           title="Actions"
           actions={[
             {
-              label: 'Répondre',
-              icon: <Edit size={20} color={colors.textPrimary} />,
-              onPress: () => {},
-            },
-            {
               label: 'Supprimer',
               icon: <Trash size={20} color={colors.danger} />,
-              onPress: () => { if (contextMenuMsg) handleDeleteMessage(contextMenuMsg); },
+              onPress: handleDeleteContextMessage,
               destructive: true,
             },
           ]}

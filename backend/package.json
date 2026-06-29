@@ -10,7 +10,8 @@
     "start": "node --env-file=.env dist/app.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:services": "tsx --env-file=.env scripts/test-services.ts"
+    "test:services": "tsx --env-file=.env scripts/test-services.ts",
+    "create-user": "tsx --env-file=.env scripts/create-user.ts"
   },
   "engines": {
     "node": ">=20.0.0"

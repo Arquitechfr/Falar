@@ -19,6 +19,7 @@ export interface VerifyOtpResponse {
 export interface SendOtpResponse {
   success: boolean;
   isNewUser: boolean;
+  keySalt: string | null;
 }
 
 export async function sendOtp(phone: string): Promise<SendOtpResponse> {
@@ -31,12 +32,14 @@ export async function verifyOtp(
   code: string,
   publicKey: string,
   deviceToken?: string,
+  keySalt?: string,
 ): Promise<VerifyOtpResponse> {
   const res = await api.post<VerifyOtpResponse>('/auth/verify-otp', {
     phone,
     code,
     publicKey,
     deviceToken,
+    keySalt,
   });
   return res.data;
 }

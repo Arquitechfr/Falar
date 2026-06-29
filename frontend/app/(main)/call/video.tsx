@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,6 +18,7 @@ import { useWebRTC } from '@/features/calls/useWebRTC';
 import { useCallStore } from '@/features/calls/callStore';
 import { startCall as startCallApi } from '@/features/calls/callsApi';
 import { getSocket } from '@/services/socket';
+import { logger } from '@/services/api';
 
 // Lazy import RTCView to reduce bundle size
 let RTCView: any = null;
@@ -100,7 +101,7 @@ export default function VideoCallScreen() {
         await webrtc.startOutgoingCall();
       } catch (err) {
         if (!cancelled) {
-          console.error('[VideoCall] init error:', err);
+          logger.error('[VideoCall] init error:', err);
           setInitError('Impossible de démarrer l\'appel');
         }
       }
@@ -161,8 +162,16 @@ export default function VideoCallScreen() {
     }
   }, [state, startedAt]);
 
+  const controlsVisibleRef = useRef(controlsVisible);
+  controlsVisibleRef.current = controlsVisible;
+
   useEffect(() => {
-    const timeout = setTimeout(() => setControlsVisible(false), 5000);
+    if (!controlsVisible) return;
+    const timeout = setTimeout(() => {
+      if (controlsVisibleRef.current) {
+        setControlsVisible(false);
+      }
+    }, 5000);
     return () => clearTimeout(timeout);
   }, [controlsVisible]);
 

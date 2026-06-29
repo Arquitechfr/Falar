@@ -32,7 +32,7 @@ export class AuthError extends Error {
   }
 }
 
-export async function sendOTP(phone: string): Promise<{ isNewUser: boolean }> {
+export async function sendOTP(phone: string): Promise<{ isNewUser: boolean; keySalt: string | null }> {
   const allowed = await checkOTPRateLimit(phone);
   if (!allowed) {
     throw new AuthError('RATE_LIMITED', 'Too many OTP requests, try again later', 429);
@@ -41,12 +41,13 @@ export async function sendOTP(phone: string): Promise<{ isNewUser: boolean }> {
   const phoneHash = hashPhoneNumber(phone);
   const existingUser = await User.findOne({ phoneHash });
   const isNewUser = !existingUser;
+  const keySalt = existingUser?.keySalt || null;
 
   // Essayer Twilio Verify en premier si activé
   if (env.TWILIO_ENABLED) {
     const twilioResult = await sendTwilioOtp(phone);
     if (twilioResult.success) {
-      return { isNewUser };
+      return { isNewUser, keySalt };
     }
     console.log(`[OTP] Twilio échoué pour ${phoneHash}..., fallback sur système interne`);
   }
@@ -56,7 +57,7 @@ export async function sendOTP(phone: string): Promise<{ isNewUser: boolean }> {
   await storeOTP(phone, code);
   console.log(`[OTP] Système interne — code pour ${phoneHash}: ${code}`);
 
-  return { isNewUser };
+  return { isNewUser, keySalt };
 }
 
 export async function verifyOTPAndLogin(
@@ -64,6 +65,7 @@ export async function verifyOTPAndLogin(
   code: string,
   publicKey: string,
   deviceToken?: string,
+  keySalt?: string,
 ): Promise<{ accessToken: string; refreshToken: string; user: { id: string; phone: string; publicKey: string; displayName: string } }> {
   const phoneHash = hashPhoneNumber(phone);
   let valid = false;
@@ -92,6 +94,7 @@ export async function verifyOTPAndLogin(
     user.publicKey = publicKey;
     user.phoneE164 = phone;
     if (deviceToken) user.deviceToken = deviceToken;
+    if (keySalt) user.keySalt = keySalt;
     await user.save();
   } else {
     const maskedPhone = phone.slice(0, 4) + '****' + phone.slice(-2);
@@ -104,6 +107,7 @@ export async function verifyOTPAndLogin(
         displayName: maskedPhone,
         username,
         deviceToken: deviceToken || '',
+        keySalt: keySalt || '',
       });
     } catch (createErr: unknown) {
       const mongoErr = createErr as { code?: number };
@@ -114,6 +118,7 @@ export async function verifyOTPAndLogin(
         existing.publicKey = publicKey;
         existing.phoneE164 = phone;
         if (deviceToken) existing.deviceToken = deviceToken;
+        if (keySalt) existing.keySalt = keySalt;
         await existing.save();
         user = existing;
       } else {

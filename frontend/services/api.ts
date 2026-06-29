@@ -10,6 +10,15 @@ const TIMEOUT = 15000;
 let isRefreshing = false;
 let refreshPromise: Promise<string | null> | null = null;
 
+export const logger = {
+  log: (...args: unknown[]) => {
+    if (__DEV__) console.log(...args);
+  },
+  error: (...args: unknown[]) => {
+    if (__DEV__) console.error(...args);
+  },
+};
+
 async function getAccessToken(): Promise<string | null> {
   try {
     return await SecureStore.getItemAsync(ACCESS_KEY);
@@ -125,7 +134,7 @@ async function request<T = any>(endpoint: string, config: RequestConfig = {}): P
   const token = await getAccessToken();
 
   const isFormData = config.body instanceof FormData;
-  console.log('[api] request:', endpoint, '| isFormData:', isFormData, '| body type:', typeof config.body);
+  logger.log('[api] request:', endpoint, '| isFormData:', isFormData, '| body type:', typeof config.body);
 
   const headers: Record<string, string> = {
     ...config.headers,
@@ -136,7 +145,7 @@ async function request<T = any>(endpoint: string, config: RequestConfig = {}): P
   } else {
     delete headers['Content-Type'];
   }
-  console.log('[api] headers:', JSON.stringify(headers));
+  logger.log('[api] headers:', JSON.stringify(headers));
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -150,13 +159,13 @@ async function request<T = any>(endpoint: string, config: RequestConfig = {}): P
   };
 
   if (isFormData) {
-    console.log('[api] using XHR for FormData upload to:', url);
+    logger.log('[api] using XHR for FormData upload to:', url);
     let xhrRes: XhrResponse;
     try {
       xhrRes = await fetchFormDataWithXhr(url, options.method || 'POST', headers, config.body, options.timeout);
-      console.log('[api] XHR response status:', xhrRes.status);
+      logger.log('[api] XHR response status:', xhrRes.status);
     } catch (error) {
-      console.error('[api] XHR error:', error);
+      logger.error('[api] XHR error:', error);
       throw error;
     }
 
@@ -180,7 +189,7 @@ async function request<T = any>(endpoint: string, config: RequestConfig = {}): P
       }
     }
 
-    console.log('[api] XHR response data:', JSON.stringify(xhrRes.data).slice(0, 200));
+    logger.log('[api] XHR response data:', JSON.stringify(xhrRes.data).slice(0, 200));
     if (!xhrRes.ok) {
       throw { response: { status: xhrRes.status, data: xhrRes.data } };
     }
@@ -189,11 +198,11 @@ async function request<T = any>(endpoint: string, config: RequestConfig = {}): P
 
   let response: Response;
   try {
-    console.log('[api] fetching:', url, '| method:', options.method, '| body is FormData:', options.body instanceof FormData);
+    logger.log('[api] fetching:', url, '| method:', options.method, '| body is FormData:', options.body instanceof FormData);
     response = await fetchWithTimeout(url, options);
-    console.log('[api] response status:', response.status);
+    logger.log('[api] response status:', response.status);
   } catch (error) {
-    console.error('[api] fetch error:', error);
+    logger.error('[api] fetch error:', error);
     throw new Error('Network error or timeout');
   }
 
@@ -219,7 +228,7 @@ async function request<T = any>(endpoint: string, config: RequestConfig = {}): P
   }
 
   const data = await response.json();
-  console.log('[api] response data:', JSON.stringify(data).slice(0, 200));
+  logger.log('[api] response data:', JSON.stringify(data).slice(0, 200));
 
   if (!response.ok) {
     throw { response: { status: response.status, data } };

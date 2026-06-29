@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, memo } from 'react';
 import { View, Text } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useNetInfo } from '@react-native-community/netinfo';
@@ -9,6 +9,10 @@ import { typography } from '@/constants/typography';
 import { BottomTabBar } from '@/components/ui/BottomTabBar';
 import { MessageCircle, User, Users } from '@/components/ui/Icons';
 import { useIncomingCall } from '@/features/calls/useIncomingCall';
+
+const ConversationsIcon = memo(({ color, size }: { color: string; size: number }) => <MessageCircle size={size} color={color} />);
+const ContactsIcon = memo(({ color, size }: { color: string; size: number }) => <Users size={size} color={color} />);
+const ProfileIcon = memo(({ color, size }: { color: string; size: number }) => <User size={size} color={color} />);
 
 export default function MainLayout() {
   const { colors } = useTheme();
@@ -55,21 +59,21 @@ export default function MainLayout() {
           name="conversations"
           options={{
             title: 'Messages',
-            tabBarIcon: ({ color, size }) => <MessageCircle size={size} color={color} />,
+            tabBarIcon: ConversationsIcon,
           }}
         />
         <Tabs.Screen
           name="contacts"
           options={{
             title: 'Contacts',
-            tabBarIcon: ({ color, size }) => <Users size={size} color={color} />,
+            tabBarIcon: ContactsIcon,
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
             title: 'Profil',
-            tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
+            tabBarIcon: ProfileIcon,
           }}
         />
         <Tabs.Screen name="settings" options={{ href: null, headerShown: false }} />

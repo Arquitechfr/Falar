@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, memo } from 'react';
 import { View, Text, RefreshControl, Pressable } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
@@ -24,6 +24,32 @@ import {
 } from '@/components/ui';
 import { Plus, MessageCircle, Search as SearchIcon } from '@/components/ui/Icons';
 
+interface ConversationListItemProps {
+  item: DecryptedConversation;
+  onPress: (conv: DecryptedConversation) => void;
+}
+
+const ConversationListItem = memo(function ConversationListItem({ item, onPress }: ConversationListItemProps) {
+  const handlePress = useCallback(() => onPress(item), [item, onPress]);
+  return (
+    <ConversationItem
+      contact={item.participantDisplayName || item.participantId}
+      lastMessagePreview={item.lastMessagePreview}
+      lastTimestamp={item.lastTimestamp}
+      unreadCount={item.unreadCount}
+      avatarUrl={item.participantAvatarUrl}
+      onPress={handlePress}
+    />
+  );
+});
+
+const Separator = memo(function Separator() {
+  const { colors } = useTheme();
+  return (
+    <View style={{ height: 0.5, backgroundColor: colors.border, marginLeft: spacing.md + 52 + spacing.sm + 2 }} />
+  );
+});
+
 function getGreeting(): string {
   const hour = new Date().getHours();
   if (hour < 12) return 'Bonjour';
@@ -35,7 +61,8 @@ export default function ConversationsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const toast = useToast();
-  const user = useAuthStore((s) => s.user);
+  const currentUserDisplayName = useAuthStore((s) => s.user?.displayName);
+  const currentUserAvatarUrl = useAuthStore((s) => s.user?.avatarUrl);
   const { data: conversations, isLoading, refetch, isRefetching } = useConversations();
   const [showSearch, setShowSearch] = useState(false);
   const [searchPhone, setSearchPhone] = useState('');
@@ -52,25 +79,40 @@ export default function ConversationsScreen() {
     );
   }, [conversations, localSearch]);
 
+  const handleShowSearch = useCallback(() => setShowSearch(true), []);
+  const handleCloseSearch = useCallback(() => {
+    setShowSearch(false);
+    setSearchPhone('');
+  }, []);
+  const contentContainerStyle = useMemo(() => ({ paddingBottom: 100 }), []);
+  const fabContainerStyle = useMemo(
+    () => ({
+      position: 'absolute' as const,
+      bottom: spacing.lg + 60,
+      right: spacing.lg,
+    }),
+    [],
+  );
+
   const handleSearch = useCallback(async () => {
     if (!searchPhone.trim()) return;
     setSearching(true);
     try {
-      const user = await searchUser(searchPhone.trim());
-      if (user) {
+      const foundUser = await searchUser(searchPhone.trim());
+      if (foundUser) {
         setShowSearch(false);
         setSearchPhone('');
         const conversationId = computeConversationId(
           useAuthStore.getState().user?.id || '',
-          user.id,
+          foundUser.id,
         );
         router.push({
           pathname: '/(main)/chat/[conversationId]',
           params: {
             conversationId,
-            recipientId: user.id,
-            recipientPubKey: user.publicKey,
-            recipientName: user.displayName,
+            recipientId: foundUser.id,
+            recipientPubKey: foundUser.publicKey,
+            recipientName: foundUser.displayName,
           },
         });
       } else {
@@ -94,6 +136,15 @@ export default function ConversationsScreen() {
       },
     });
   }, [router]);
+
+  const keyExtractor = useCallback((item: DecryptedConversation) => item.conversationId, []);
+
+  const renderItem = useCallback(
+    ({ item }: { item: DecryptedConversation }) => (
+      <ConversationListItem item={item} onPress={handleConversationPress} />
+    ),
+    [handleConversationPress],
+  );
 
   const renderSkeleton = useCallback(() => (
     <View style={{ paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 2, flexDirection: 'row', alignItems: 'center' }}>
@@ -135,11 +186,11 @@ export default function ConversationsScreen() {
               {getGreeting()},
             </Text>
             <Text style={{ ...typography.heading, color: colors.textPrimary }}>
-              {user?.displayName?.split(' ')[0] || 'Falar'}
+              {currentUserDisplayName?.split(' ')[0] || 'Falar'}
             </Text>
           </View>
           <Pressable onPress={() => router.push('/(main)/profile')} hitSlop={12}>
-            <Avatar name={user?.displayName || '?'} size={40} avatarUrl={user?.avatarUrl} />
+            <Avatar name={currentUserDisplayName || '?'} size={40} avatarUrl={currentUserAvatarUrl} />
           </Pressable>
         </View>
         <SearchBar
@@ -151,17 +202,8 @@ export default function ConversationsScreen() {
 
       <FlashList
         data={filteredConversations}
-        keyExtractor={(item) => item.conversationId}
-        renderItem={({ item }) => (
-          <ConversationItem
-            contact={item.participantDisplayName || item.participantId}
-            lastMessagePreview={item.lastMessagePreview}
-            lastTimestamp={item.lastTimestamp}
-            unreadCount={item.unreadCount}
-            avatarUrl={item.participantAvatarUrl}
-            onPress={() => handleConversationPress(item)}
-          />
-        )}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
         estimatedItemSize={72}
         refreshControl={
           <RefreshControl
@@ -171,50 +213,35 @@ export default function ConversationsScreen() {
             colors={[colors.primary]}
           />
         }
-        ItemSeparatorComponent={() => (
-          <View style={{ height: 0.5, backgroundColor: colors.border, marginLeft: spacing.md + 52 + spacing.sm + 2 }} />
+        ItemSeparatorComponent={Separator}
+        ListEmptyComponent={useMemo(
+          () => (
+            localSearch ? (
+              <EmptyState
+                icon={<SearchIcon size={32} color={colors.textSecondary} />}
+                title="Aucun résultat"
+                description={`Aucune conversation ne correspond à "${localSearch}"`}
+              />
+            ) : (
+              <EmptyState
+                icon={<MessageCircle size={32} color={colors.textSecondary} />}
+                title="Aucune conversation"
+                description="Démarrez une nouvelle conversation en appuyant sur le bouton +"
+                actionLabel="Nouvelle conversation"
+                onAction={handleShowSearch}
+              />
+            )
+          ),
+          [localSearch, colors.textSecondary, handleShowSearch],
         )}
-        ListEmptyComponent={
-          localSearch ? (
-            <EmptyState
-              icon={<SearchIcon size={32} color={colors.textSecondary} />}
-              title="Aucun résultat"
-              description={`Aucune conversation ne correspond à "${localSearch}"`}
-            />
-          ) : (
-            <EmptyState
-              icon={<MessageCircle size={32} color={colors.textSecondary} />}
-              title="Aucune conversation"
-              description="Démarrez une nouvelle conversation en appuyant sur le bouton +"
-              actionLabel="Nouvelle conversation"
-              onAction={() => setShowSearch(true)}
-            />
-          )
-        }
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={contentContainerStyle}
       />
 
-      <View
-        style={{
-          position: 'absolute',
-          bottom: spacing.lg + 60,
-          right: spacing.lg,
-        }}
-      >
-        <FloatingButton
-          onPress={() => setShowSearch(true)}
-          icon={<Plus size={24} color="#FFFFFF" />}
-        />
+      <View style={fabContainerStyle}>
+        <FloatingButton onPress={handleShowSearch} icon={<Plus size={24} color="#FFFFFF" />} />
       </View>
 
-      <BottomSheet
-        visible={showSearch}
-        onClose={() => {
-          setShowSearch(false);
-          setSearchPhone('');
-        }}
-        snapPoint="50%"
-      >
+      <BottomSheet visible={showSearch} onClose={handleCloseSearch} snapPoint="50%">
         <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.lg, gap: spacing.md }}>
           <Text style={{ ...typography.subtitle, color: colors.textPrimary }}>
             Rechercher un utilisateur

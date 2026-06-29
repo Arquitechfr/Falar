@@ -15,7 +15,7 @@ const INPUT_SIZE = 52;
 export default function OtpScreen() {
   const router = useRouter();
   const { colors, radii } = useTheme();
-  const params = useLocalSearchParams<{ phone: string; isNewUser: string }>();
+  const params = useLocalSearchParams<{ phone: string; isNewUser: string; keySalt: string }>();
 
   const [digits, setDigits] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [loading, setLoading] = useState(false);
@@ -55,11 +55,12 @@ export default function OtpScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setLoading(true);
     router.push({
-      pathname: '/(auth)/password',
+      pathname: '/(auth)/digitcode',
       params: {
         phone: params.phone,
         code,
         isNewUser: params.isNewUser,
+        keySalt: params.keySalt || '',
       },
     });
     setLoading(false);

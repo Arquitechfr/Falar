@@ -1,4 +1,5 @@
 import { io, type Socket } from 'socket.io-client';
+import { logger } from './api';
 
 let socket: Socket | null = null;
 
@@ -15,7 +16,7 @@ export function connect(token: string): Socket {
   });
 
   socket.on('connect_error', (err) => {
-    console.error('[Socket] Connection error:', err.message);
+    logger.error('[Socket] Connection error:', err.message);
   });
 
   return socket;

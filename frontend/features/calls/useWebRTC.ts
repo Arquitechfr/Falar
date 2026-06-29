@@ -1,5 +1,6 @@
 import { useRef, useCallback, useEffect } from 'react';
 import { getSocket } from '@/services/socket';
+import { logger } from '@/services/api';
 import { useCallStore } from './callStore';
 import { endCall as endCallApi } from './callsApi';
 
@@ -34,26 +35,24 @@ export function useWebRTC() {
   const localStreamRef = useRef<MediaStream | null>(null);
   const iceCandidateBufferRef = useRef<RTCIceCandidate[]>([]);
 
-  const {
-    state,
-    type,
-    role,
-    callId,
-    recipientId,
-    recipientName,
-    conversationId,
-    muted,
-    videoEnabled,
-    speakerEnabled,
-    setCallState,
-    setLocalStream,
-    setRemoteStream,
-    setMuted,
-    setVideoEnabled,
-    setSpeakerEnabled,
-    setStartedAt,
-    reset,
-  } = useCallStore();
+  const state = useCallStore((s) => s.state);
+  const type = useCallStore((s) => s.type);
+  const role = useCallStore((s) => s.role);
+  const callId = useCallStore((s) => s.callId);
+  const recipientId = useCallStore((s) => s.recipientId);
+  const recipientName = useCallStore((s) => s.recipientName);
+  const conversationId = useCallStore((s) => s.conversationId);
+  const muted = useCallStore((s) => s.muted);
+  const videoEnabled = useCallStore((s) => s.videoEnabled);
+  const speakerEnabled = useCallStore((s) => s.speakerEnabled);
+  const setCallState = useCallStore((s) => s.setCallState);
+  const setLocalStream = useCallStore((s) => s.setLocalStream);
+  const setRemoteStream = useCallStore((s) => s.setRemoteStream);
+  const setMuted = useCallStore((s) => s.setMuted);
+  const setVideoEnabled = useCallStore((s) => s.setVideoEnabled);
+  const setSpeakerEnabled = useCallStore((s) => s.setSpeakerEnabled);
+  const setStartedAt = useCallStore((s) => s.setStartedAt);
+  const reset = useCallStore((s) => s.reset);
 
   const cleanup = useCallback(() => {
     if (localStreamRef.current) {
@@ -64,7 +63,7 @@ export function useWebRTC() {
       try {
         pcRef.current.close();
       } catch (err) {
-        console.error('[WebRTC] Error closing peer connection:', err);
+        logger.error('[WebRTC] Error closing peer connection:', err);
       }
       pcRef.current = null;
     }
@@ -151,7 +150,7 @@ export function useWebRTC() {
         });
       }
     } catch (err) {
-      console.error('[WebRTC] startOutgoingCall error:', err);
+      logger.error('[WebRTC] startOutgoingCall error:', err);
       setCallState('ended');
     }
   }, [type, callId, recipientId, getLocalStream, createPeerConnection, setCallState]);
@@ -177,7 +176,7 @@ export function useWebRTC() {
         });
       }
     } catch (err) {
-      console.error('[WebRTC] acceptIncomingCall error:', err);
+      logger.error('[WebRTC] acceptIncomingCall error:', err);
       setCallState('ended');
     }
   }, [type, callId, recipientId, getLocalStream, createPeerConnection, setCallState]);

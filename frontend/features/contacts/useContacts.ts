@@ -16,7 +16,7 @@ function normalizeToE164(phone: string): string | null {
 }
 
 async function fetchDeviceContacts(): Promise<DeviceContact[]> {
-  const data = await Contact.getAllDetails([ContactField.FULL_NAME, ContactField.PHONES], { limit: 10000 });
+  const data = await Contact.getAllDetails([ContactField.FULL_NAME, ContactField.PHONES], { limit: 2000 });
   const deviceContacts: DeviceContact[] = [];
   for (const contact of data) {
     const name = contact.fullName || 'Inconnu';
@@ -32,70 +32,77 @@ async function fetchDeviceContacts(): Promise<DeviceContact[]> {
 }
 
 export function useContacts() {
-  const store = useContactsStore();
+  const contacts = useContactsStore((s) => s.contacts);
+  const isLoading = useContactsStore((s) => s.isLoading);
+  const lastSyncAt = useContactsStore((s) => s.lastSyncAt);
+  const permissionDenied = useContactsStore((s) => s.permissionDenied);
+  const setContacts = useContactsStore((s) => s.setContacts);
+  const setLoading = useContactsStore((s) => s.setLoading);
+  const setPermissionDenied = useContactsStore((s) => s.setPermissionDenied);
+  const loadStoredContactsFromStore = useContactsStore((s) => s.loadStoredContacts);
 
   const loadStoredContacts = useCallback(async (): Promise<SyncedContact[]> => {
-    await store.loadStoredContacts();
-    return store.contacts;
-  }, [store]);
+    await loadStoredContactsFromStore();
+    return useContactsStore.getState().contacts;
+  }, [loadStoredContactsFromStore]);
 
   const syncDeviceContacts = useCallback(async (): Promise<SyncedContact[]> => {
     const { status } = await requestPermissionsAsync();
     if (status !== 'granted') {
-      store.setPermissionDenied(true);
+      setPermissionDenied(true);
       throw new Error('PERMISSION_DENIED');
     }
-    store.setPermissionDenied(false);
+    setPermissionDenied(false);
 
     const deviceContacts = await fetchDeviceContacts();
     if (deviceContacts.length === 0) {
-      store.setContacts([]);
+      setContacts([]);
       return [];
     }
 
-    store.setLoading(true);
+    setLoading(true);
     try {
       const synced = await syncContacts(deviceContacts);
-      store.setContacts(synced);
+      setContacts(synced);
       return synced;
     } finally {
-      store.setLoading(false);
+      setLoading(false);
     }
-  }, [store]);
+  }, [setContacts, setLoading, setPermissionDenied]);
 
   const initDeviceContacts = useCallback(async (): Promise<SyncedContact[]> => {
     const { status } = await getPermissionsAsync();
     if (status !== 'granted') {
-      store.setPermissionDenied(true);
+      setPermissionDenied(true);
       return [];
     }
-    store.setPermissionDenied(false);
+    setPermissionDenied(false);
 
-    if (store.contacts.length > 0) {
-      return store.contacts;
+    if (useContactsStore.getState().contacts.length > 0) {
+      return useContactsStore.getState().contacts;
     }
 
     const deviceContacts = await fetchDeviceContacts();
     if (deviceContacts.length === 0) {
-      store.setContacts([]);
+      setContacts([]);
       return [];
     }
 
-    store.setLoading(true);
+    setLoading(true);
     try {
       const synced = await syncContacts(deviceContacts);
-      store.setContacts(synced);
+      setContacts(synced);
       return synced;
     } finally {
-      store.setLoading(false);
+      setLoading(false);
     }
-  }, [store]);
+  }, [setContacts, setLoading, setPermissionDenied]);
 
   return {
-    contacts: store.contacts,
-    isLoading: store.isLoading,
-    lastSyncAt: store.lastSyncAt,
-    permissionDenied: store.permissionDenied,
+    contacts,
+    isLoading,
+    lastSyncAt,
+    permissionDenied,
     syncDeviceContacts,
     initDeviceContacts,
     loadStoredContacts,

@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useState, useCallback, type ReactNode } from 'react';
 import { Pressable, ViewStyle } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { ActionSheet, type ActionSheetItem } from './ActionSheet';
@@ -13,10 +13,11 @@ export interface ContextMenuProps {
 export function ContextMenu({ children, actions, title, style }: ContextMenuProps) {
   const [visible, setVisible] = useState(false);
 
-  const handleLongPress = () => {
+  const handleLongPress = useCallback(() => {
+    if (actions.length === 0) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setVisible(true);
-  };
+  }, [actions.length]);
 
   return (
     <>

@@ -11,6 +11,7 @@ export const verifyOtpSchema = z.object({
   code: z.string().length(6, 'Code must be 6 digits'),
   publicKey: z.string().min(1, 'publicKey is required'),
   deviceToken: z.string().optional(),
+  keySalt: z.string().optional(),
 });
 
 export const refreshSchema = z.object({

@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useMemo, useCallback, useEffect, useRef, memo } from 'react';
 import { View, Text, Pressable, ViewStyle } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -54,7 +54,7 @@ function formatTime(ts: string): string {
   return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
 }
 
-export function ConversationItem({
+export const ConversationItem = memo(function ConversationItem({
   contact,
   lastMessagePreview,
   lastTimestamp,
@@ -75,6 +75,13 @@ export function ConversationItem({
   const newMsgScale = useSharedValue(isNew ? 0.95 : 1);
   const newMsgOpacity = useSharedValue(isNew ? 0 : 1);
 
+  const onDeleteRef = useRef(onDelete);
+  onDeleteRef.current = onDelete;
+  const onArchiveRef = useRef(onArchive);
+  onArchiveRef.current = onArchive;
+  const onPressRef = useRef(onPress);
+  onPressRef.current = onPress;
+
   useEffect(() => {
     if (isNew) {
       newMsgScale.value = withSpring(1, SPRING_CONFIG);
@@ -92,24 +99,37 @@ export function ConversationItem({
 
   const handlePress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onPress();
-  }, [onPress]);
+    onPressRef.current?.();
+  }, []);
 
-  const panGesture = Gesture.Pan()
-    .activeActivationDistance(15)
-    .onUpdate((e) => {
-      translateX.value = e.translationX;
-    })
-    .onEnd((e) => {
-      if (e.translationX < -SWIPE_THRESHOLD && onDelete) {
-        runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
-        runOnJS(onDelete)();
-      } else if (e.translationX > SWIPE_THRESHOLD && onArchive) {
-        runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
-        runOnJS(onArchive)();
-      }
-      translateX.value = withSpring(0, SPRING_CONFIG);
-    });
+  const handleDelete = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onDeleteRef.current?.();
+  }, []);
+
+  const handleArchive = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onArchiveRef.current?.();
+  }, []);
+
+  const panGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeActivationDistance(20)
+        .failOffsetY([-5, 5])
+        .onUpdate((e) => {
+          translateX.value = e.translationX;
+        })
+        .onEnd((e) => {
+          if (e.translationX < -SWIPE_THRESHOLD) {
+            runOnJS(handleDelete)();
+          } else if (e.translationX > SWIPE_THRESHOLD) {
+            runOnJS(handleArchive)();
+          }
+          translateX.value = withSpring(0, SPRING_CONFIG);
+        }),
+    [translateX, handleDelete, handleArchive],
+  );
 
   const animatedContentStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
@@ -294,4 +314,4 @@ export function ConversationItem({
       </View>
     </ContextMenu>
   );
-}
+});

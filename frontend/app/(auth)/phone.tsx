@@ -27,10 +27,10 @@ export default function PhoneScreen() {
 
     setLoading(true);
     try {
-      const { isNewUser } = await sendOtp(phoneNumber);
+      const { isNewUser, keySalt } = await sendOtp(phoneNumber);
       router.push({
         pathname: '/(auth)/otp',
-        params: { phone: phoneNumber, isNewUser: String(isNewUser) },
+        params: { phone: phoneNumber, isNewUser: String(isNewUser), keySalt: keySalt || '' },
       });
     } catch (err) {
       const msg = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message;

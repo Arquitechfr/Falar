@@ -38,19 +38,20 @@ function RootNavigator() {
   const segments = useSegments();
   const router = useRouter();
   const { colors } = useTheme();
+  const rootSegment = segments[0] as string | undefined;
 
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
-    const inOnboardingGroup = segments[0] === '(onboarding)';
+    const inAuthGroup = rootSegment === '(auth)';
+    const inOnboardingGroup = rootSegment === '(onboarding)';
 
     if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup) {
       router.replace('/(auth)/phone');
     } else if (isAuthenticated && (inAuthGroup || inOnboardingGroup)) {
       router.replace('/(main)/conversations');
     }
-  }, [isAuthenticated, isLoading, segments, router]);
+  }, [isAuthenticated, isLoading, rootSegment]);
 
   if (isLoading) {
     return (

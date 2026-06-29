@@ -32,10 +32,11 @@ export async function checkOTPRateLimit(phone: string): Promise<boolean> {
 }
 
 export async function verifyOTP(phone: string, code: string): Promise<boolean> {
-  const stored = await getOTP(phone);
-  if (!stored || stored !== code) {
-    return false;
-  }
-  await deleteOTP(phone); // anti-replay
-  return true;
+  const result = await redis.eval(
+    "if redis.call('GET', KEYS[1]) == ARGV[1] then redis.call('DEL', KEYS[1]); return 1 else return 0 end",
+    1,
+    OTP_KEY(phone),
+    code,
+  ) as number;
+  return result === 1;
 }

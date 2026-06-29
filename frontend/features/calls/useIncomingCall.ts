@@ -14,65 +14,98 @@ interface IncomingCallData {
 
 export function useIncomingCall() {
   const router = useRouter();
-  const { initIncoming, state, callId, recipientId } = useCallStore();
+  const { initIncoming, state } = useCallStore();
   const stateRef = useRef(state);
   stateRef.current = state;
 
   useEffect(() => {
+    const registerListeners = () => {
+      const socket = getSocket();
+      if (!socket) return () => {};
+
+      const onIncoming = (data: IncomingCallData) => {
+        if (stateRef.current !== 'idle') return;
+
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        initIncoming(
+          data.callerId,
+          'Appel entrant',
+          data.type,
+          data.callId,
+          data.conversationId,
+        );
+
+        router.push({
+          pathname: '/(main)/call/incoming',
+          params: {
+            callId: data.callId,
+            callerId: data.callerId,
+            type: data.type,
+            conversationId: data.conversationId,
+          },
+        });
+      };
+
+      const onCallEnd = (data: { callId: string }) => {
+        const { callId: currentCallId } = useCallStore.getState();
+        if (data.callId === currentCallId) {
+          useCallStore.getState().setCallState('ended');
+          setTimeout(() => {
+            useCallStore.getState().reset();
+            router.back();
+          }, 500);
+        }
+      };
+
+      const onCallReject = (data: { callId: string }) => {
+        const { callId: currentCallId } = useCallStore.getState();
+        if (data.callId === currentCallId) {
+          useCallStore.getState().setCallState('ended');
+          setTimeout(() => {
+            useCallStore.getState().reset();
+            router.back();
+          }, 500);
+        }
+      };
+
+      socket.on('call:incoming', onIncoming);
+      socket.on('call:end', onCallEnd);
+      socket.on('call:reject', onCallReject);
+
+      return () => {
+        socket.off('call:incoming', onIncoming);
+        socket.off('call:end', onCallEnd);
+        socket.off('call:reject', onCallReject);
+      };
+    };
+
     const socket = getSocket();
-    if (!socket) return;
 
-    const onIncoming = (data: IncomingCallData) => {
-      if (stateRef.current !== 'idle') return;
+    if (socket?.connected) {
+      return registerListeners();
+    }
 
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-      initIncoming(
-        data.callerId,
-        'Appel entrant',
-        data.type,
-        data.callId,
-        data.conversationId,
-      );
+    let cleanup: (() => void) | undefined;
 
-      router.push({
-        pathname: '/(main)/call/incoming',
-        params: {
-          callId: data.callId,
-          callerId: data.callerId,
-          type: data.type,
-          conversationId: data.conversationId,
-        },
-      });
+    const onConnect = () => {
+      cleanup = registerListeners();
     };
 
-    const onCallEnd = (data: { callId: string }) => {
-      if (data.callId === callId) {
-        useCallStore.getState().setCallState('ended');
-        setTimeout(() => {
-          useCallStore.getState().reset();
-          router.back();
-        }, 500);
-      }
-    };
+    if (socket) {
+      socket.on('connect', onConnect);
+      return () => {
+        socket.off('connect', onConnect);
+        cleanup?.();
+      };
+    }
 
-    const onCallReject = (data: { callId: string }) => {
-      if (data.callId === callId) {
-        useCallStore.getState().setCallState('ended');
-        setTimeout(() => {
-          useCallStore.getState().reset();
-          router.back();
-        }, 500);
-      }
-    };
-
-    socket.on('call:incoming', onIncoming);
-    socket.on('call:end', onCallEnd);
-    socket.on('call:reject', onCallReject);
+    const retryTimer = setTimeout(() => {
+      cleanup = registerListeners();
+    }, 500);
 
     return () => {
-      socket.off('call:incoming', onIncoming);
-      socket.off('call:end', onCallEnd);
-      socket.off('call:reject', onCallReject);
+      clearTimeout(retryTimer);
+      cleanup?.();
     };
-  }, [router, initIncoming, callId, recipientId]);
+  }, [router, initIncoming]);
 }

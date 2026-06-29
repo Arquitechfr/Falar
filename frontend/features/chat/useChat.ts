@@ -28,14 +28,12 @@ function toChatMessage(msg: Message, privateKey: Uint8Array | null, recipientPub
 export function useChat({ conversationId, recipientId, recipientPubKey }: UseChatParams) {
   const privateKey = useCryptoStore((s) => s.privateKey);
   const { messages, isTyping, addMessage, updateMessage, setMessages, setTyping, clear } = useChatStore();
-  const socket = getSocket();
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cleanupRef = useRef<{ messages: ChatMessage[]; socket: ReturnType<typeof getSocket> }>({
+  const cleanupRef = useRef<{ messages: ChatMessage[] }>({
     messages: [],
-    socket: null,
   });
 
-  cleanupRef.current = { messages, socket };
+  cleanupRef.current = { messages };
 
   const query = useInfiniteQuery({
     queryKey: ['messages', conversationId],
@@ -59,6 +57,7 @@ export function useChat({ conversationId, recipientId, recipientPubKey }: UseCha
   }, [query.data, privateKey, recipientPubKey, setMessages]);
 
   useEffect(() => {
+    const socket = getSocket();
     if (!socket) return;
 
     const onNewMessage = (msg: Message) => {
@@ -86,17 +85,18 @@ export function useChat({ conversationId, recipientId, recipientPubKey }: UseCha
       socket.off('typing:start', onTypingStart);
       socket.off('typing:stop', onTypingStop);
     };
-  }, [socket, conversationId, privateKey, recipientPubKey, addMessage, updateMessage, setTyping]);
+  }, [conversationId, privateKey, recipientPubKey, addMessage, updateMessage, setTyping]);
 
   useEffect(() => {
     return () => {
-      const { messages: currentMessages, socket: currentSocket } = cleanupRef.current;
+      const { messages: currentMessages } = cleanupRef.current;
+      const socket = getSocket();
       const unreadMessages = currentMessages.filter(
         (m) => m.recipientId === recipientId || m.status !== 'read',
       );
-      if (currentSocket && unreadMessages.length > 0) {
+      if (socket && unreadMessages.length > 0) {
         for (const msg of unreadMessages) {
-          currentSocket.emit('message:read', { messageId: msg._id });
+          socket.emit('message:read', { messageId: msg._id });
         }
       }
       clear();
@@ -176,19 +176,22 @@ export function useChat({ conversationId, recipientId, recipientPubKey }: UseCha
   );
 
   const sendTypingStart = useCallback(() => {
+    const socket = getSocket();
     if (!socket) return;
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     socket.emit('typing:start', { conversationId });
     typingTimeoutRef.current = setTimeout(() => {
-      socket.emit('typing:stop', { conversationId });
+      const s = getSocket();
+      if (s) s.emit('typing:stop', { conversationId });
     }, 2000);
-  }, [socket, conversationId]);
+  }, [conversationId]);
 
   const sendTypingStop = useCallback(() => {
+    const socket = getSocket();
     if (!socket) return;
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     socket.emit('typing:stop', { conversationId });
-  }, [socket, conversationId]);
+  }, [conversationId]);
 
   const markAsRead = useCallback(
     (messageIds: string[]) => {

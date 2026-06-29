@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { View, Text, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,21 +25,27 @@ export default function PasswordScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const isSubmitting = useRef(false);
 
   const handleSubmit = useCallback(async () => {
+    if (isSubmitting.current) return;
+    isSubmitting.current = true;
     console.log('[PasswordScreen] handleSubmit called', { isNewUser, phone: params.phone, code: params.code });
 
     if (!password) {
+      isSubmitting.current = false;
       toast.show('Entrez un mot de passe', 'error');
       return;
     }
 
     if (isNewUser && password !== confirmPassword) {
+      isSubmitting.current = false;
       toast.show('Les mots de passe ne correspondent pas', 'error');
       return;
     }
 
     if (!params.phone || !params.code) {
+      isSubmitting.current = false;
       toast.show('Erreur: paramètres manquants', 'error');
       return;
     }
@@ -75,6 +81,7 @@ export default function PasswordScreen() {
       toast.show(msg || 'Échec de la vérification', 'error');
     } finally {
       setLoading(false);
+      isSubmitting.current = false;
     }
   }, [password, confirmPassword, isNewUser, params, toast, router]);
 

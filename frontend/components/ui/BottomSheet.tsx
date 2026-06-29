@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useCallback, useState, type ReactNode } from 'react';
 import { View, Pressable, DimensionValue } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -48,17 +48,23 @@ export function BottomSheet({
     }
   }, [visible, translateY, backdropOpacity]);
 
-  const panGesture = Gesture.Pan()
-    .onUpdate((e) => {
-      translateY.value = Math.max(0, e.translationY);
-    })
-    .onEnd((e) => {
-      if (e.translationY > 120) {
-        runOnJS(onClose)();
-      } else {
-        translateY.value = withSpring(0, SPRING_CONFIG);
-      }
-    });
+  const stableOnClose = useCallback(onClose, [onClose]);
+
+  const panGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .onUpdate((e) => {
+          translateY.value = Math.max(0, e.translationY);
+        })
+        .onEnd((e) => {
+          if (e.translationY > 120) {
+            runOnJS(stableOnClose)();
+          } else {
+            translateY.value = withSpring(0, SPRING_CONFIG);
+          }
+        }),
+    [stableOnClose, translateY],
+  );
 
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],

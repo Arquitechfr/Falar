@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { View, Text } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useNetInfo } from '@react-native-community/netinfo';
@@ -17,12 +17,12 @@ export default function MainLayout() {
   useIncomingCall();
 
   useEffect(() => {
+    let socket: ReturnType<typeof connect> | null = null;
+
     (async () => {
       const token = await getAccessToken();
       if (token) {
-        const socket = connect(token);
-        socket.on('connect', () => {});
-        socket.on('disconnect', () => {});
+        socket = connect(token);
       }
     })();
 
@@ -31,7 +31,12 @@ export default function MainLayout() {
     };
   }, []);
 
-  const isOffline = !netInfo.isConnected;
+  const renderTabBar = useCallback(
+    (props: React.ComponentProps<typeof BottomTabBar>) => <BottomTabBar {...props} />,
+    [],
+  );
+
+  const isOffline = netInfo.isConnected === false;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -44,7 +49,7 @@ export default function MainLayout() {
         screenOptions={{
           headerShown: false,
         }}
-        tabBar={(props) => <BottomTabBar {...props} />}
+        tabBar={renderTabBar}
       >
         <Tabs.Screen
           name="conversations"

@@ -96,14 +96,30 @@ export async function verifyOTPAndLogin(
   } else {
     const maskedPhone = phone.slice(0, 4) + '****' + phone.slice(-2);
     const username = await generateUsername(phone);
-    user = await User.create({
-      phoneHash,
-      phoneE164: phone,
-      publicKey,
-      displayName: maskedPhone,
-      username,
-      deviceToken: deviceToken || '',
-    });
+    try {
+      user = await User.create({
+        phoneHash,
+        phoneE164: phone,
+        publicKey,
+        displayName: maskedPhone,
+        username,
+        deviceToken: deviceToken || '',
+      });
+    } catch (createErr: unknown) {
+      const mongoErr = createErr as { code?: number };
+      if (mongoErr.code === 11000) {
+        // Race condition : une requête concurrente vient de créer l'utilisateur
+        const existing = await User.findOne({ phoneHash });
+        if (!existing) throw createErr;
+        existing.publicKey = publicKey;
+        existing.phoneE164 = phone;
+        if (deviceToken) existing.deviceToken = deviceToken;
+        await existing.save();
+        user = existing;
+      } else {
+        throw createErr;
+      }
+    }
   }
 
   const payload = { userId: user._id.toString(), phone: user.phoneE164 };

@@ -8,6 +8,11 @@ const { mockRedis } = vi.hoisted(() => ({
     get: vi.fn(async (key: string) => mockRedis.data.get(key) ?? null),
     del: vi.fn(async (key: string) => { mockRedis.data.delete(key); }),
     exists: vi.fn(async (key: string) => (mockRedis.data.has(key) ? 1 : 0)),
+    eval: vi.fn(async (_script: string, _numkeys: number, key: string, arg: string) => {
+      const value = mockRedis.data.get(key);
+      if (value === arg) { mockRedis.data.delete(key); return 1; }
+      return 0;
+    }),
   },
 }));
 

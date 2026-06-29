@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { View, Text, Pressable, FlatList, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
+import { List } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { SafeScreen } from '@/components/SafeScreen';
 import { useTheme } from '@/hooks/useTheme';
@@ -81,47 +82,40 @@ export default function NotificationsScreen() {
   }, [toast]);
 
   const renderItem = useCallback(({ item }: { item: NotificationItem }) => (
-    <Pressable
-      onPress={() => { if (!item.read) { /* mark as read */ } }}
-      style={({ pressed }) => ({
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.md,
-        backgroundColor: pressed ? colors.secondaryBackground : (item.read ? 'transparent' : colors.secondaryBackground + '40'),
-      })}
-    >
-      <View
-        style={{
+    <List.Item
+      title={item.title}
+      titleStyle={{ color: colors.textPrimary, fontFamily: 'Outfit_600SemiBold', fontSize: 16 }}
+      description={item.body}
+      descriptionStyle={{ color: colors.textSecondary, fontFamily: 'Outfit_400Regular', fontSize: 13 }}
+      descriptionNumberOfLines={2}
+      left={() => (
+        <View style={{
           width: 40,
           height: 40,
           borderRadius: 20,
           backgroundColor: typeColors[item.type] || colors.primary,
           alignItems: 'center',
           justifyContent: 'center',
-        }}
-      >
-        {typeIcons[item.type] || <Bell size={20} color="#FFFFFF" />}
-      </View>
-      <View style={{ flex: 1, gap: 2, marginLeft: spacing.sm + 2 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ ...typography.subtitle, color: colors.textPrimary, flex: 1 }} numberOfLines={1}>
-            {item.title}
-          </Text>
+          alignSelf: 'center',
+        }}>
+          {typeIcons[item.type] || <Bell size={20} color="#FFFFFF" />}
+        </View>
+      )}
+      right={() => (
+        <View style={{ flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', gap: 4 }}>
           <Text style={{ ...typography.micro, color: colors.textSecondary }}>
             {formatTimeAgo(item.createdAt)}
           </Text>
+          {!item.read && (
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.primary }} />
+          )}
         </View>
-        {item.body && (
-          <Text style={{ ...typography.caption, color: colors.textSecondary }} numberOfLines={2}>
-            {item.body}
-          </Text>
-        )}
-      </View>
-      {!item.read && (
-        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.primary, marginTop: 6 }} />
       )}
-    </Pressable>
+      style={{
+        backgroundColor: item.read ? 'transparent' : colors.secondaryBackground + '40',
+        paddingVertical: spacing.sm,
+      }}
+    />
   ), [colors]);
 
   if (loading) {
@@ -161,7 +155,7 @@ export default function NotificationsScreen() {
         data={notifications}
         keyExtractor={(item) => item._id}
         renderItem={renderItem}
-        ItemSeparatorComponent={() => <View style={{ height: 0.5, backgroundColor: colors.border, marginLeft: spacing.lg + 40 + spacing.sm + 2 }} />}
+        ItemSeparatorComponent={() => <View style={{ height: 0.5, backgroundColor: colors.border, marginLeft: 72 }} />}
         ListEmptyComponent={
           <EmptyState
             icon={<Bell size={32} color={colors.textSecondary} />}

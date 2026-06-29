@@ -9,7 +9,6 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { RTCView } from 'react-native-webrtc';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing } from '@/constants/spacing';
@@ -19,6 +18,15 @@ import { useWebRTC } from '@/features/calls/useWebRTC';
 import { useCallStore } from '@/features/calls/callStore';
 import { startCall as startCallApi } from '@/features/calls/callsApi';
 import { getSocket } from '@/services/socket';
+
+// Lazy import RTCView to reduce bundle size
+let RTCView: any = null;
+const getRTCView = () => {
+  if (!RTCView) {
+    RTCView = require('react-native-webrtc').RTCView;
+  }
+  return RTCView;
+};
 
 const SPRING_CONFIG = { damping: 15, stiffness: 300, mass: 0.8 };
 
@@ -185,12 +193,12 @@ export default function VideoCallScreen() {
       <Pressable onPress={toggleControls} style={{ flex: 1 }}>
         {/* Remote video (full screen) */}
         {remoteStream ? (
-          <RTCView
-            streamURL={remoteStream.toURL()}
-            style={{ flex: 1, backgroundColor: '#000000' }}
-            objectFit="cover"
-            mirror={false}
-          />
+          getRTCView()({
+            streamURL: remoteStream.toURL(),
+            style: { flex: 1, backgroundColor: '#000000' },
+            objectFit: 'cover',
+            mirror: false,
+          })
         ) : (
           <View style={{ flex: 1, backgroundColor: '#1a1a1a', alignItems: 'center', justifyContent: 'center' }}>
             <Avatar name={params.recipientName || '?'} size={120} />
@@ -221,12 +229,12 @@ export default function VideoCallScreen() {
           }}
         >
           {localStream && videoEnabled ? (
-            <RTCView
-              streamURL={localStream.toURL()}
-              style={{ flex: 1 }}
-              objectFit="cover"
-              mirror
-            />
+            getRTCView()({
+              streamURL: localStream.toURL(),
+              style: { flex: 1 },
+              objectFit: 'cover',
+              mirror: true,
+            })
           ) : (
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ ...typography.micro, color: '#FFFFFF', opacity: 0.5 }}>Vous</Text>

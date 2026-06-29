@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { List } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { SafeScreen } from '@/components/SafeScreen';
 import { useTheme } from '@/hooks/useTheme';
@@ -8,7 +9,7 @@ import { useToast } from '@/components/ui/Toast';
 import { typography } from '@/constants/typography';
 import { spacing } from '@/constants/spacing';
 import { radii } from '@/constants/theme';
-import { ScreenHeader, Avatar, Card, ActionSheet } from '@/components/ui';
+import { ScreenHeader, Avatar, ActionSheet } from '@/components/ui';
 import { getUserById, type UserProfile } from '@/features/users/usersApi';
 import { Phone, Video, Search, ImageIcon, FileText, Star, Bell, Block, Trash, Shield } from '@/components/ui/Icons';
 
@@ -125,26 +126,21 @@ export default function ConversationInfoScreen() {
 
         {/* Menu items */}
         <View style={{ paddingHorizontal: spacing.lg, gap: spacing.md }}>
-          <Card padding={0}>
+          <View style={{ backgroundColor: colors.card, borderRadius: radii.md, overflow: 'hidden' }}>
             {menuItems.map((item, index) => (
-              <Pressable
-                key={index}
-                style={({ pressed }) => ({
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingVertical: spacing.md,
-                  paddingHorizontal: spacing.md,
-                  backgroundColor: pressed ? colors.secondaryBackground : 'transparent',
-                  borderBottomWidth: index < menuItems.length - 1 ? 0.5 : 0,
-                  borderBottomColor: colors.border,
-                })}
-              >
-                <View style={{ marginRight: spacing.sm }}>{item.icon}</View>
-                <Text style={{ ...typography.body, color: colors.textPrimary, flex: 1 }}>{item.label}</Text>
-                <Text style={{ ...typography.caption, color: colors.textSecondary }}>{item.value}</Text>
-              </Pressable>
+              <View key={index}>
+                <List.Item
+                  title={item.label}
+                  titleStyle={{ color: colors.textPrimary, fontFamily: 'Outfit_400Regular', fontSize: 16 }}
+                  description={item.value}
+                  descriptionStyle={{ color: colors.textSecondary, fontFamily: 'Outfit_400Regular', fontSize: 13 }}
+                  left={() => <View style={{ justifyContent: 'center', paddingLeft: spacing.md }}>{item.icon}</View>}
+                  style={{ paddingVertical: spacing.sm }}
+                />
+                {index < menuItems.length - 1 && <View style={{ height: 0.5, backgroundColor: colors.border, marginLeft: 56 }} />}
+              </View>
             ))}
-          </Card>
+          </View>
 
           {/* Encryption info */}
           <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: radii.md, padding: spacing.md }}>
@@ -155,35 +151,23 @@ export default function ConversationInfoScreen() {
           </View>
 
           {/* Danger zone */}
-          <Pressable
-            onPress={() => setShowBlock(true)}
-            style={({ pressed }) => ({
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: colors.card,
-              borderRadius: radii.md,
-              padding: spacing.md,
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <Block size={18} color={colors.danger} style={{ marginRight: spacing.sm }} />
-            <Text style={{ ...typography.body, color: colors.danger, flex: 1 }}>Bloquer</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => setShowDelete(true)}
-            style={({ pressed }) => ({
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: colors.card,
-              borderRadius: radii.md,
-              padding: spacing.md,
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <Trash size={18} color={colors.danger} style={{ marginRight: spacing.sm }} />
-            <Text style={{ ...typography.body, color: colors.danger, flex: 1 }}>Supprimer la conversation</Text>
-          </Pressable>
+          <View style={{ backgroundColor: colors.card, borderRadius: radii.md, overflow: 'hidden' }}>
+            <List.Item
+              title="Bloquer"
+              titleStyle={{ color: colors.danger, fontFamily: 'Outfit_400Regular', fontSize: 16 }}
+              left={() => <View style={{ justifyContent: 'center', paddingLeft: spacing.md }}><Block size={20} color={colors.danger} /></View>}
+              onPress={() => setShowBlock(true)}
+              style={{ paddingVertical: spacing.sm }}
+            />
+            <View style={{ height: 0.5, backgroundColor: colors.border, marginLeft: 56 }} />
+            <List.Item
+              title="Supprimer la conversation"
+              titleStyle={{ color: colors.danger, fontFamily: 'Outfit_400Regular', fontSize: 16 }}
+              left={() => <View style={{ justifyContent: 'center', paddingLeft: spacing.md }}><Trash size={20} color={colors.danger} /></View>}
+              onPress={() => setShowDelete(true)}
+              style={{ paddingVertical: spacing.sm }}
+            />
+          </View>
         </View>
       </ScrollView>
 

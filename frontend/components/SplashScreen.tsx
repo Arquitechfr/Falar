@@ -4,11 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
   withTiming,
-  withSequence,
   withDelay,
-  withRepeat,
   Easing,
   runOnJS,
 } from 'react-native-reanimated';
@@ -18,53 +15,22 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const LOGO_WIDTH = 200;
 
-const SPRING_CONFIG = { damping: 14, stiffness: 120, mass: 1 };
-
 interface SplashScreenProps {
   onComplete: () => void;
 }
 
 export function SplashScreen({ onComplete }: SplashScreenProps) {
-  const logoScale = useSharedValue(0.8);
-  const logoOpacity = useSharedValue(0);
-  const glowOpacity = useSharedValue(0);
   const sceneOpacity = useSharedValue(1);
 
   useEffect(() => {
-    // Phase 1: Scale + Fade in (0-800ms)
-    logoScale.value = withSpring(1, SPRING_CONFIG);
-    logoOpacity.value = withTiming(1, { duration: 400, easing: Easing.out(Easing.ease) });
-
-    // Phase 2: Glow pulse (800-2000ms) — 2 repetitions
-    glowOpacity.value = withDelay(
-      800,
-      withRepeat(
-        withSequence(
-          withTiming(0.6, { duration: 600, easing: Easing.inOut(Easing.ease) }),
-          withTiming(0, { duration: 600, easing: Easing.inOut(Easing.ease) }),
-        ),
-        2,
-        false,
-      ),
-    );
-
-    // Phase 3: Fade out scene (2100-2500ms)
+    // Fade out scene after 2 seconds
     sceneOpacity.value = withDelay(
-      2100,
+      2000,
       withTiming(0, { duration: 400, easing: Easing.in(Easing.ease) }, () => {
         runOnJS(onComplete)();
       }),
     );
-  }, [logoScale, logoOpacity, glowOpacity, sceneOpacity, onComplete]);
-
-  const logoAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: logoScale.value }],
-    opacity: logoOpacity.value,
-  }));
-
-  const glowAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: glowOpacity.value,
-  }));
+  }, [sceneOpacity, onComplete]);
 
   const sceneAnimatedStyle = useAnimatedStyle(() => ({
     opacity: sceneOpacity.value,
@@ -109,32 +75,16 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
 
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.content}>
-          {/* Glow layer behind logo */}
-          <Animated.View
-            style={[
-              {
-                position: 'absolute',
-                width: LOGO_WIDTH + 60,
-                height: LOGO_WIDTH + 60,
-                borderRadius: (LOGO_WIDTH + 60) / 2,
-                backgroundColor: 'rgba(255,255,255,0.15)',
-              },
-              glowAnimatedStyle,
-            ]}
-          />
-
           {/* Logo */}
-          <Animated.View style={logoAnimatedStyle}>
-            <Image
-              source={require('@/assets/texte_logo.png')}
-              style={{
-                width: LOGO_WIDTH,
-                height: LOGO_WIDTH * 0.35,
-                resizeMode: 'contain',
-              }}
-              accessibilityLabel="Falar logo"
-            />
-          </Animated.View>
+          <Image
+            source={require('@/assets/texte_logo.png')}
+            style={{
+              width: LOGO_WIDTH,
+              height: LOGO_WIDTH * 0.35,
+              resizeMode: 'contain',
+            }}
+            accessibilityLabel="Falar logo"
+          />
         </View>
       </SafeAreaView>
     </Animated.View>

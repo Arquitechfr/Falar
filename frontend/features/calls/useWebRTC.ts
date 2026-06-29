@@ -1,14 +1,22 @@
 import { useRef, useCallback, useEffect } from 'react';
-import {
-  RTCPeerConnection,
-  RTCIceCandidate,
-  RTCSessionDescription,
-  mediaDevices,
-  MediaStream,
-} from 'react-native-webrtc';
 import { getSocket } from '@/services/socket';
 import { useCallStore } from './callStore';
 import { endCall as endCallApi } from './callsApi';
+
+// Lazy imports for WebRTC to reduce bundle size
+let WebRTC: any = null;
+const getWebRTC = () => {
+  if (!WebRTC) {
+    WebRTC = require('react-native-webrtc');
+  }
+  return WebRTC;
+};
+
+type RTCPeerConnection = any;
+type RTCIceCandidate = any;
+type RTCSessionDescription = any;
+type MediaStream = any;
+type MediaStreamConstraints = any;
 
 const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
@@ -52,8 +60,12 @@ export function useWebRTC() {
       localStreamRef.current.getTracks().forEach((t) => t.stop());
       localStreamRef.current = null;
     }
-    if (pcRef.current) {
-      pcRef.current.close();
+    if (pcRef.current && typeof pcRef.current.close === 'function') {
+      try {
+        pcRef.current.close();
+      } catch (err) {
+        console.error('[WebRTC] Error closing peer connection:', err);
+      }
       pcRef.current = null;
     }
     iceCandidateBufferRef.current = [];
@@ -62,6 +74,7 @@ export function useWebRTC() {
   }, [setLocalStream, setRemoteStream]);
 
   const getLocalStream = useCallback(async (isVideo: boolean): Promise<MediaStream> => {
+    const webrtc = getWebRTC();
     const constraints: MediaStreamConstraints = {
       audio: true,
       video: isVideo
@@ -73,14 +86,15 @@ export function useWebRTC() {
         : false,
     };
 
-    const stream = await mediaDevices.getUserMedia(constraints);
+    const stream = await webrtc.mediaDevices.getUserMedia(constraints);
     localStreamRef.current = stream;
     setLocalStream(stream);
     return stream;
   }, [setLocalStream]);
 
   const createPeerConnection = useCallback((): RTCPeerConnection => {
-    const pc = new RTCPeerConnection(PC_CONFIG);
+    const webrtc = getWebRTC();
+    const pc = new webrtc.RTCPeerConnection(PC_CONFIG);
 
     pc.onicecandidate = (event) => {
       if (event.candidate) {
@@ -125,7 +139,8 @@ export function useWebRTC() {
       pcRef.current = pc;
 
       const offer = await pc.createOffer();
-      await pc.setLocalDescription(new RTCSessionDescription(offer));
+      const webrtc = getWebRTC();
+      await pc.setLocalDescription(new webrtc.RTCSessionDescription(offer));
 
       const socket = getSocket();
       if (socket && callId) {
@@ -178,10 +193,11 @@ export function useWebRTC() {
     }
 
     const pc = pcRef.current;
-    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+    const webrtc = getWebRTC();
+    await pc.setRemoteDescription(new webrtc.RTCSessionDescription(sdp));
 
     const answer = await pc.createAnswer();
-    await pc.setLocalDescription(new RTCSessionDescription(answer));
+    await pc.setLocalDescription(new webrtc.RTCSessionDescription(answer));
 
     const socket = getSocket();
     if (socket) {
@@ -200,11 +216,13 @@ export function useWebRTC() {
 
   const handleRemoteAnswer = useCallback(async (sdp: RTCSessionDescriptionInit) => {
     if (!pcRef.current) return;
-    await pcRef.current.setRemoteDescription(new RTCSessionDescription(sdp));
+    const webrtc = getWebRTC();
+    await pcRef.current.setRemoteDescription(new webrtc.RTCSessionDescription(sdp));
   }, []);
 
   const handleIceCandidate = useCallback(async (candidate: RTCIceCandidateInit) => {
-    const iceCandidate = new RTCIceCandidate(candidate);
+    const webrtc = getWebRTC();
+    const iceCandidate = new webrtc.RTCIceCandidate(candidate);
     if (pcRef.current && pcRef.current.remoteDescription) {
       await pcRef.current.addIceCandidate(iceCandidate);
     } else {

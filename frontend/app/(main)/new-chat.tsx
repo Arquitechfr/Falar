@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { View, Text, Pressable, SectionList, RefreshControl, Share } from 'react-native';
 import { useRouter } from 'expo-router';
+import { List } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { SafeScreen } from '@/components/SafeScreen';
 import { useTheme } from '@/hooks/useTheme';
@@ -164,56 +165,45 @@ export default function NewChatScreen() {
         sections={sections}
         keyExtractor={(item, index) => `${item.contactName}-${index}`}
         renderItem={({ item }) => (
-          <Pressable
-            onPress={() => item.isMember ? handleContactPress(item) : handleInvite(item)}
-            style={({ pressed }) => ({
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingHorizontal: spacing.lg,
-              paddingVertical: spacing.sm + 2,
-              backgroundColor: pressed ? colors.secondaryBackground : 'transparent',
-            })}
-          >
-            <View style={{ marginRight: spacing.sm + 2 }}>
-              <Avatar
-                name={item.displayName || item.contactName}
-                size={48}
-                avatarUrl={item.avatarUrl || undefined}
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ ...typography.subtitle, color: colors.textPrimary }} numberOfLines={1}>
-                {item.contactName}
-              </Text>
-              {item.isMember && item.displayName && item.displayName !== item.contactName && (
-                <Text style={{ ...typography.caption, color: colors.textSecondary }} numberOfLines={1}>
-                  {item.displayName}
-                </Text>
-              )}
-              {item.isMember && item.username && (
-                <Text style={{ ...typography.caption, color: colors.textSecondary }}>
-                  @{item.username}
-                </Text>
-              )}
-            </View>
-            {item.isMember ? (
-              <Badge label="Membre" variant="success" size="sm" />
-            ) : (
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 10,
-                paddingVertical: 6,
-                backgroundColor: colors.primary,
-                borderRadius: 16,
-              }}>
-                <ShareIcon size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
-                <Text style={{ ...typography.micro, color: '#FFFFFF', fontWeight: '600' }}>
-                  Inviter
-                </Text>
+          <List.Item
+            title={item.contactName}
+            titleStyle={{ color: colors.textPrimary, fontFamily: 'Outfit_600SemiBold', fontSize: 17 }}
+            description={item.isMember && item.displayName && item.displayName !== item.contactName ? `${item.displayName}${item.username ? ' · @' + item.username : ''}` : item.isMember && item.username ? '@' + item.username : ''}
+            descriptionStyle={{ color: colors.textSecondary, fontFamily: 'Outfit_400Regular', fontSize: 13 }}
+            descriptionNumberOfLines={1}
+            left={() => (
+              <View style={{ justifyContent: 'center' }}>
+                <Avatar
+                  name={item.displayName || item.contactName}
+                  size={48}
+                  avatarUrl={item.avatarUrl || undefined}
+                />
               </View>
             )}
-          </Pressable>
+            right={() => (
+              <View style={{ justifyContent: 'center' }}>
+                {item.isMember ? (
+                  <Badge label="Membre" variant="success" size="sm" />
+                ) : (
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: 10,
+                    paddingVertical: 6,
+                    backgroundColor: colors.primary,
+                    borderRadius: 16,
+                  }}>
+                    <ShareIcon size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+                    <Text style={{ ...typography.micro, color: '#FFFFFF', fontWeight: '600' }}>
+                      Inviter
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
+            onPress={() => item.isMember ? handleContactPress(item) : handleInvite(item)}
+            style={{ paddingVertical: spacing.sm }}
+          />
         )}
         renderSectionHeader={({ section: { title } }) => (
           <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: 4, backgroundColor: colors.background }}>
@@ -223,7 +213,7 @@ export default function NewChatScreen() {
           </View>
         )}
         ItemSeparatorComponent={() => (
-          <View style={{ height: 0.5, backgroundColor: colors.border, marginLeft: spacing.lg + 48 + spacing.sm + 2 }} />
+          <View style={{ height: 0.5, backgroundColor: colors.border, marginLeft: 80 }} />
         )}
         ListEmptyComponent={
           search ? (

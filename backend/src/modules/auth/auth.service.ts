@@ -5,6 +5,7 @@ import { redis } from '../../config/redis.js';
 import { User } from '../users/user.model.js';
 import { generateOTP, storeOTP, checkOTPRateLimit, verifyOTP } from '../../utils/otp.js';
 import { sendTwilioOtp, verifyTwilioOtp } from './twilio-verify.service.js';
+import { generateUsername } from '../../utils/usernameGenerator.js';
 
 function hashPhoneNumber(phoneNumber: string): string {
   return crypto
@@ -94,11 +95,13 @@ export async function verifyOTPAndLogin(
     await user.save();
   } else {
     const maskedPhone = phone.slice(0, 4) + '****' + phone.slice(-2);
+    const username = await generateUsername(phone);
     user = await User.create({
       phoneHash,
       phoneE164: phone,
       publicKey,
       displayName: maskedPhone,
+      username,
       deviceToken: deviceToken || '',
     });
   }

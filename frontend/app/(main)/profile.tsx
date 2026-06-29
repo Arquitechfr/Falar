@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
-import { View, Text, Pressable, ScrollView, Share } from 'react-native';
+import { View, Text, Pressable, ScrollView, Share, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
+import { List } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeScreen } from '@/components/SafeScreen';
 import { useAuthStore } from '@/features/auth/authStore';
@@ -104,7 +105,8 @@ export default function ProfileScreen() {
 
   return (
     <SafeScreen edges={['top', 'left', 'right']}>
-      <ScrollView contentContainerStyle={{ paddingBottom: spacing.xxl }}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: spacing.xxl }}>
         {/* Header with avatar */}
         <View style={{ alignItems: 'center', paddingTop: spacing.xxl, paddingBottom: spacing.lg }}>
           <Pressable onPress={handlePickAvatar} disabled={saving}>
@@ -155,13 +157,13 @@ export default function ProfileScreen() {
               justifyContent: 'center',
               backgroundColor: colors.card,
               borderRadius: radii.md,
-              paddingVertical: spacing.sm + 2,
-              marginRight: spacing.sm,
+              paddingVertical: spacing.md,
+              marginRight: spacing.md,
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <QrCode size={18} color={colors.primary} style={{ marginRight: 6 }} />
-            <Text style={{ ...typography.captionMedium, color: colors.primary }}>QR Code</Text>
+            <QrCode size={20} color={colors.primary} style={{ marginRight: 6 }} />
+            <Text style={{ ...typography.body, color: colors.primary }}>QR Code</Text>
           </Pressable>
           <Pressable
             onPress={handleShare}
@@ -172,12 +174,12 @@ export default function ProfileScreen() {
               justifyContent: 'center',
               backgroundColor: colors.card,
               borderRadius: radii.md,
-              paddingVertical: spacing.sm + 2,
+              paddingVertical: spacing.md,
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <ShareIcon size={18} color={colors.primary} style={{ marginRight: 6 }} />
-            <Text style={{ ...typography.captionMedium, color: colors.primary }}>Partager</Text>
+            <ShareIcon size={20} color={colors.primary} style={{ marginRight: 6 }} />
+            <Text style={{ ...typography.body, color: colors.primary }}>Partager</Text>
           </Pressable>
         </View>
 
@@ -287,69 +289,40 @@ export default function ProfileScreen() {
             </Text>
           </View>
 
-          {/* Settings */}
-          <Pressable
-            onPress={() => router.push('/(main)/settings')}
-            style={({ pressed }) => ({
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: colors.card,
-              borderRadius: radii.md,
-              padding: spacing.md,
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginRight: spacing.sm }}>
-              <SettingsIcon size={18} color={colors.textSecondary} />
-            </View>
-            <Text style={{ ...typography.body, color: colors.textPrimary, flex: 1 }}>Paramètres</Text>
-            <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <ChevronRight size={18} color={colors.textSecondary} />
-            </View>
-          </Pressable>
-
-          {/* Notifications */}
-          <Pressable
-            onPress={() => router.push('/(main)/notifications')}
-            style={({ pressed }) => ({
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: colors.card,
-              borderRadius: radii.md,
-              padding: spacing.md,
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginRight: spacing.sm }}>
-              <Bell size={18} color={colors.textSecondary} />
-            </View>
-            <Text style={{ ...typography.body, color: colors.textPrimary, flex: 1 }}>Notifications</Text>
-            <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <ChevronRight size={18} color={colors.textSecondary} />
-            </View>
-          </Pressable>
+          {/* Settings & Notifications */}
+          <View style={{ backgroundColor: colors.card, borderRadius: radii.md, overflow: 'hidden' }}>
+            <List.Item
+              title="Paramètres"
+              titleStyle={{ color: colors.textPrimary, fontFamily: 'Outfit_400Regular', fontSize: 16 }}
+              left={() => <View style={{ justifyContent: 'center', paddingLeft: spacing.md }}><SettingsIcon size={20} color={colors.textSecondary} /></View>}
+              right={() => <View style={{ justifyContent: 'center' }}><ChevronRight size={20} color={colors.textSecondary} /></View>}
+              onPress={() => router.push('/(main)/settings')}
+              style={{ paddingVertical: spacing.sm }}
+            />
+            <View style={{ height: 0.5, backgroundColor: colors.border, marginLeft: 56 }} />
+            <List.Item
+              title="Notifications"
+              titleStyle={{ color: colors.textPrimary, fontFamily: 'Outfit_400Regular', fontSize: 16 }}
+              left={() => <View style={{ justifyContent: 'center', paddingLeft: spacing.md }}><Bell size={20} color={colors.textSecondary} /></View>}
+              right={() => <View style={{ justifyContent: 'center' }}><ChevronRight size={20} color={colors.textSecondary} /></View>}
+              onPress={() => router.push('/(main)/notifications')}
+              style={{ paddingVertical: spacing.sm }}
+            />
+          </View>
 
           {/* Logout */}
-          <Pressable
-            onPress={() => setShowLogout(true)}
-            style={({ pressed }) => ({
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: colors.card,
-              borderRadius: radii.md,
-              padding: spacing.md,
-              marginTop: spacing.sm,
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginRight: spacing.sm }}>
-              <LogOut size={18} color={colors.danger} />
-            </View>
-            <Text style={{ ...typography.bodyMedium, color: colors.danger }}>Se déconnecter</Text>
-          </Pressable>
+          <View style={{ backgroundColor: colors.card, borderRadius: radii.md, overflow: 'hidden' }}>
+            <List.Item
+              title="Se déconnecter"
+              titleStyle={{ color: colors.danger, fontFamily: 'Outfit_500Medium', fontSize: 16 }}
+              left={() => <View style={{ justifyContent: 'center', paddingLeft: spacing.md }}><LogOut size={20} color={colors.danger} /></View>}
+              onPress={() => setShowLogout(true)}
+              style={{ paddingVertical: spacing.sm }}
+            />
+          </View>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* QR Code Modal */}
       <Modal visible={showQR} onClose={() => setShowQR(false)} title="Mon QR Code">

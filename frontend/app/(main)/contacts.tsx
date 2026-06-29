@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { View, Text, Pressable, SectionList, RefreshControl, Share } from 'react-native';
+import { List } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { SafeScreen } from '@/components/SafeScreen';
 import { useTheme } from '@/hooks/useTheme';
@@ -168,34 +169,23 @@ export default function ContactsScreen() {
         sections={sections}
         keyExtractor={(item, index) => `${item.contactName}-${index}`}
         renderItem={({ item }) => (
-          <Pressable
-            onPress={() => item.isMember ? handleContactPress(item) : handleInvite(item)}
-            style={({ pressed }) => ({
-              flexDirection: 'row',
-              alignItems: 'flex-start',
-              paddingHorizontal: spacing.lg,
-              paddingVertical: spacing.md,
-              backgroundColor: pressed ? colors.secondaryBackground : colors.background,
-              minHeight: 80,
-            })}
-          >
-            <Avatar
-              name={item.displayName || item.contactName}
-              size={56}
-              avatarUrl={item.avatarUrl || undefined}
-            />
-            <View style={{ flex: 1, marginLeft: spacing.md }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-                <Text
-                  style={{
-                    ...typography.subtitle,
-                    color: colors.textPrimary,
-                    flex: 1,
-                  }}
-                  numberOfLines={1}
-                >
-                  {item.contactName}
-                </Text>
+          <List.Item
+            title={item.contactName}
+            titleStyle={{ color: colors.textPrimary, fontFamily: 'Outfit_600SemiBold', fontSize: 17 }}
+            description={item.phone}
+            descriptionStyle={{ color: colors.textSecondary, fontFamily: 'Outfit_400Regular', fontSize: 14 }}
+            descriptionNumberOfLines={1}
+            left={() => (
+              <View style={{ justifyContent: 'center' }}>
+                <Avatar
+                  name={item.displayName || item.contactName}
+                  size={56}
+                  avatarUrl={item.avatarUrl || undefined}
+                />
+              </View>
+            )}
+            right={() => (
+              <View style={{ flexDirection: 'column', justifyContent: 'center', gap: 4 }}>
                 {item.isMember ? (
                   <Pressable
                     onPress={(e) => {
@@ -209,7 +199,6 @@ export default function ContactsScreen() {
                       paddingVertical: 4,
                       backgroundColor: pressed ? colors.primaryDark : colors.primary,
                       borderRadius: 20,
-                      marginLeft: spacing.sm,
                     })}
                   >
                     <MessageCircle size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
@@ -230,7 +219,6 @@ export default function ContactsScreen() {
                       paddingVertical: 4,
                       backgroundColor: pressed ? colors.primaryDark : colors.primary,
                       borderRadius: 20,
-                      marginLeft: spacing.sm,
                     })}
                   >
                     <ShareIcon size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
@@ -239,31 +227,16 @@ export default function ContactsScreen() {
                     </Text>
                   </Pressable>
                 )}
-              </View>
-              <Text
-                style={{
-                  ...typography.body,
-                  color: colors.textSecondary,
-                  marginBottom: 2,
-                }}
-                numberOfLines={1}
-              >
-                {item.phone}
-              </Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                {item.isMember && item.displayName && item.displayName !== item.contactName && (
-                  <Text style={{ ...typography.caption, color: colors.textTertiary, marginRight: 8 }} numberOfLines={1}>
-                    {item.displayName}
-                  </Text>
-                )}
                 {item.isMember && item.username && (
-                  <Text style={{ ...typography.caption, color: colors.textTertiary }} numberOfLines={1}>
+                  <Text style={{ ...typography.micro, color: colors.textTertiary }} numberOfLines={1}>
                     @{item.username}
                   </Text>
                 )}
               </View>
-            </View>
-          </Pressable>
+            )}
+            onPress={() => item.isMember ? handleContactPress(item) : handleInvite(item)}
+            style={{ paddingVertical: spacing.sm, minHeight: 80 }}
+          />
         )}
         renderSectionHeader={({ section: { title } }) => (
           <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: 4, backgroundColor: colors.background }}>
@@ -273,7 +246,7 @@ export default function ContactsScreen() {
           </View>
         )}
         ItemSeparatorComponent={() => (
-          <View style={{ height: 0.5, backgroundColor: colors.border, marginLeft: spacing.lg + 56 + spacing.md }} />
+          <View style={{ height: 0.5, backgroundColor: colors.border, marginLeft: 88 }} />
         )}
         ListEmptyComponent={
           search ? (

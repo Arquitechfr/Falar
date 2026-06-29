@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, useColorScheme } from 'react-native';
 import * as SplashScreenNative from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { PaperProvider } from 'react-native-paper';
 import {
   useFonts,
   Outfit_400Regular,
@@ -18,6 +19,7 @@ import { ThemeProvider, useTheme } from '@/hooks/useTheme';
 import { ToastProvider } from '@/components/ui/Toast';
 import { SplashScreen } from '@/components/SplashScreen';
 import { hasSeenOnboarding } from '@/utils/onboarding';
+import { paperLightTheme, paperDarkTheme } from '@/constants/paperTheme';
 import '@/global.css';
 
 SplashScreenNative.preventAutoHideAsync().catch(() => {});
@@ -68,6 +70,7 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
+  const colorScheme = useColorScheme();
   const [fontsLoaded] = useFonts({
     Outfit_400Regular,
     Outfit_500Medium,
@@ -103,9 +106,10 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <ThemeProvider>
-          <QueryClientProvider client={queryClient}>
-            <ToastProvider>
+        <PaperProvider theme={colorScheme === 'dark' ? paperDarkTheme : paperLightTheme}>
+          <ThemeProvider>
+            <QueryClientProvider client={queryClient}>
+              <ToastProvider>
               {!splashDone ? (
                 <SplashScreen onComplete={handleSplashComplete} />
               ) : onboardingNeeded === null ? (
@@ -121,10 +125,11 @@ export default function RootLayout() {
               ) : (
                 <RootNavigator />
               )}
-            </ToastProvider>
-            <StatusBar style="auto" />
-          </QueryClientProvider>
-        </ThemeProvider>
+              </ToastProvider>
+              <StatusBar style="auto" />
+            </QueryClientProvider>
+          </ThemeProvider>
+        </PaperProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

@@ -3,6 +3,7 @@ import multer from 'multer';
 import { randomUUID } from 'node:crypto';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { s3Client, minioBucket } from '../../config/minio.js';
+import { env } from '../../config/env.js';
 import type { AuthedRequest } from '../../middleware/auth.middleware.js';
 
 const upload = multer({
@@ -32,7 +33,8 @@ export async function uploadMediaController(req: AuthedRequest, res: Response, n
       }),
     );
 
-    const mediaUrl = `/${minioBucket}/${key}`;
+    const cleanEndpoint = env.MINIO_ENDPOINT.replace(/^https?:\/\//, '');
+    const mediaUrl = `https://${cleanEndpoint}/${minioBucket}/${key}`;
     res.status(201).json({ mediaUrl });
   } catch (err) {
     next(err);

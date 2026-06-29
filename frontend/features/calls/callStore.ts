@@ -1,5 +1,7 @@
 import { create } from 'zustand';
-import type { MediaStream } from 'react-native-webrtc';
+
+// Lazy import type for WebRTC to reduce bundle size
+type MediaStream = any;
 
 export type CallState = 'idle' | 'ringing' | 'connecting' | 'connected' | 'ended';
 export type CallType = 'audio' | 'video';

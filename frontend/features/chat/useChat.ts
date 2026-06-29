@@ -5,6 +5,7 @@ import { getMessages, sendMessage as apiSendMessage, updateMessageStatus, type M
 import { useChatStore, type ChatMessage } from './chatStore';
 import { encryptMessage, decryptMessage } from '@/features/crypto/encryption';
 import { useCryptoStore } from '@/features/crypto/cryptoStore';
+import { useAuthStore } from '@/features/auth/authStore';
 import { getSocket } from '@/services/socket';
 
 interface UseChatParams {
@@ -28,6 +29,7 @@ function toChatMessage(msg: Message, privateKey: Uint8Array | null, recipientPub
 
 export function useChat({ conversationId, recipientId, recipientPubKey }: UseChatParams) {
   const privateKey = useCryptoStore((s) => s.privateKey);
+  const currentUserId = useAuthStore((s) => s.user?.id ?? null);
   const messages = useChatStore((s) => s.messages);
   const isTyping = useChatStore((s) => s.isTyping);
   const addMessage = useChatStore((s) => s.addMessage);
@@ -80,8 +82,12 @@ export function useChat({ conversationId, recipientId, recipientPubKey }: UseCha
       updateMessage(data.messageId, { status: data.status as ChatMessage['status'] });
     };
 
-    const onTypingStart = () => setTyping(true);
-    const onTypingStop = () => setTyping(false);
+    const onTypingStart = (data: { conversationId?: string }) => {
+      if (data.conversationId === conversationId) setTyping(true);
+    };
+    const onTypingStop = (data: { conversationId?: string }) => {
+      if (data.conversationId === conversationId) setTyping(false);
+    };
 
     socket.on('message:new', onNewMessage);
     socket.on('message:status', onStatusUpdate);
@@ -101,7 +107,7 @@ export function useChat({ conversationId, recipientId, recipientPubKey }: UseCha
       const { messages: currentMessages } = cleanupRef.current;
       const socket = getSocket();
       const unreadMessages = currentMessages.filter(
-        (m) => m.recipientId === recipientId || m.status !== 'read',
+        (m) => m.senderId !== 'me' && m.senderId !== currentUserId && m.status !== 'read',
       );
       if (socket && unreadMessages.length > 0) {
         for (const msg of unreadMessages) {
@@ -110,7 +116,7 @@ export function useChat({ conversationId, recipientId, recipientPubKey }: UseCha
       }
       clear();
     };
-  }, [clear, recipientId]);
+  }, [clear, recipientId, currentUserId]);
 
   const sendText = useCallback(
     async (text: string) => {

@@ -162,10 +162,10 @@ export default function NewChatScreen() {
       .map((letter) => ({ title: letter, data: grouped[letter] }));
   }, [filteredContacts]);
 
-  const handleContactPress = useCallback((contact: SyncedContact) => {
+  const handleContactPress = useCallback(async (contact: SyncedContact) => {
     if (!contact.isMember || !contact.memberId || !contact.publicKey) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const conversationId = computeConversationId(
+    const conversationId = await computeConversationId(
       useAuthStore.getState().user?.id || '',
       contact.memberId,
     );

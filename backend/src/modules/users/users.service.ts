@@ -1,5 +1,6 @@
 import { User } from './user.model.js';
 import { Message } from '../messages/message.model.js';
+import { Types } from 'mongoose';
 import type { UpdateMeInput } from './users.schema.js';
 
 export async function getMe(userId: string) {
@@ -53,10 +54,11 @@ export async function searchByPhone(phone: string) {
 }
 
 export async function getContacts(userId: string) {
+  const userObjectId = new Types.ObjectId(userId);
   const messages = await Message.aggregate([
     {
       $match: {
-        $or: [{ senderId: userId }, { recipientId: userId }],
+        $or: [{ senderId: userObjectId }, { recipientId: userObjectId }],
       },
     },
     {
@@ -65,7 +67,7 @@ export async function getContacts(userId: string) {
         participantId: {
           $first: {
             $cond: [
-              { $eq: ['$senderId', userId] },
+              { $eq: ['$senderId', userObjectId] },
               '$recipientId',
               '$senderId',
             ],

@@ -102,7 +102,7 @@ export default function ConversationsScreen() {
       if (foundUser) {
         setShowSearch(false);
         setSearchPhone('');
-        const conversationId = computeConversationId(
+        const conversationId = await computeConversationId(
           useAuthStore.getState().user?.id || '',
           foundUser.id,
         );

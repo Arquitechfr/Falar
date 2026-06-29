@@ -51,9 +51,9 @@ export default function SearchScreen() {
     return () => clearTimeout(timeout);
   }, [query, handleSearch]);
 
-  const handleUserPress = useCallback((userId: string, displayName: string) => {
+  const handleUserPress = useCallback(async (userId: string, displayName: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const conversationId = computeConversationId(
+    const conversationId = await computeConversationId(
       useAuthStore.getState().user?.id || '',
       userId,
     );

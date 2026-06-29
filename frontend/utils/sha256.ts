@@ -1,6 +1,5 @@
-import { sha256 } from '@noble/hashes/sha2.js';
-import { bytesToHex } from '@noble/hashes/utils.js';
+import * as Crypto from 'expo-crypto';
 
-export function createHash(input: string): string {
-  return bytesToHex(sha256(new TextEncoder().encode(input)));
+export async function createHash(input: string): Promise<string> {
+  return Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, input);
 }

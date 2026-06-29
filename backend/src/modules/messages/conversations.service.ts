@@ -1,5 +1,6 @@
 import { Message } from './message.model.js';
 import { User } from '../users/user.model.js';
+import { Types } from 'mongoose';
 
 export interface ConversationSummary {
   conversationId: string;
@@ -17,10 +18,11 @@ export interface ConversationSummary {
 }
 
 export async function getConversations(userId: string): Promise<ConversationSummary[]> {
+  const userObjectId = new Types.ObjectId(userId);
   const conversations = await Message.aggregate([
     {
       $match: {
-        $or: [{ senderId: userId }, { recipientId: userId }],
+        $or: [{ senderId: userObjectId }, { recipientId: userObjectId }],
       },
     },
     {
@@ -54,8 +56,8 @@ export async function getConversations(userId: string): Promise<ConversationSumm
 
   const participantIds = conversations.map((c) => {
     const participantId =
-      c.lastSenderId.toString() === userId ? c.lastRecipientId : c.lastSenderId;
-    return participantId;
+      c.lastSenderId.toString() === userId ? c.lastRecipientId.toString() : c.lastSenderId.toString();
+    return new Types.ObjectId(participantId);
   });
 
   const users = await User.find({ _id: { $in: participantIds } }).lean();

@@ -3,7 +3,7 @@ import { View, Text, KeyboardAvoidingView, Platform, ScrollView, StyleSheet } fr
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { OtpInput } from 'react-native-otp-entry';
-import { randomBytes } from '@noble/hashes/utils';
+import * as Crypto from 'expo-crypto';
 import { fromByteArray } from 'base64-js';
 import { deriveKeypair } from '@/features/crypto/keyDerivation';
 import { verifyOtp } from '@/features/auth/authApi';
@@ -29,7 +29,7 @@ export default function DigitCodeScreen() {
 
   const keySalt = useMemo(() => {
     if (params.keySalt) return params.keySalt;
-    if (isNewUser) return fromByteArray(randomBytes(32));
+    if (isNewUser) return fromByteArray(Crypto.getRandomBytes(32));
     return '';
   }, [params.keySalt, isNewUser]);
 

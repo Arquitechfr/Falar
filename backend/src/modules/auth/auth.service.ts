@@ -94,7 +94,6 @@ export async function verifyOTPAndLogin(
     user.publicKey = publicKey;
     user.phoneE164 = phone;
     if (deviceToken) user.deviceToken = deviceToken;
-    if (keySalt) user.keySalt = keySalt;
     await user.save();
   } else {
     const maskedPhone = phone.slice(0, 4) + '****' + phone.slice(-2);
@@ -118,7 +117,6 @@ export async function verifyOTPAndLogin(
         existing.publicKey = publicKey;
         existing.phoneE164 = phone;
         if (deviceToken) existing.deviceToken = deviceToken;
-        if (keySalt) existing.keySalt = keySalt;
         await existing.save();
         user = existing;
       } else {

@@ -1,9 +1,0 @@
-{
-  "typescript.tsc.autoDetect": "on",
-  "typescript.tsserver.enableTracing": false,
-  "typescript.tsserver.experimental.enableProjectDiagnostics": true,
-  "typescript.tsserver.maxTsServerMemory": 8192,
-  "typescript.tsserver.watchOptions": {
-    "excludeDirectories": ["**/node_modules", "**/.git"]
-  }
-}

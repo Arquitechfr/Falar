@@ -73,7 +73,7 @@ export default function ConversationsScreen() {
     if (!localSearch.trim()) return conversations ?? [];
     const q = localSearch.toLowerCase();
     return (conversations ?? []).filter(
-      (c) =>
+      (c: DecryptedConversation) =>
         c.participantDisplayName?.toLowerCase().includes(q) ||
         c.lastMessagePreview?.toLowerCase().includes(q),
     );
@@ -148,7 +148,9 @@ export default function ConversationsScreen() {
 
   const renderSkeleton = useCallback(() => (
     <View style={{ paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 2, flexDirection: 'row', alignItems: 'center' }}>
-      <Skeleton width={52} height={52} radius={26} style={{ marginRight: spacing.sm + 2 }} />
+      <View style={{ marginRight: spacing.sm + 2 }}>
+        <Skeleton width={52} height={52} radius={26} />
+      </View>
       <View style={{ flex: 1, gap: 6 }}>
         <Skeleton width="60%" height={16} radius={8} />
         <Skeleton width="90%" height={14} radius={7} />
@@ -204,7 +206,6 @@ export default function ConversationsScreen() {
         data={filteredConversations}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
-        estimatedItemSize={72}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}

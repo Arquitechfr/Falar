@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, memo } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, type ColorValue } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { getAccessToken } from '@/services/api';
@@ -10,9 +10,9 @@ import { BottomTabBar } from '@/components/ui/BottomTabBar';
 import { MessageCircle, User, Users } from '@/components/ui/Icons';
 import { useIncomingCall } from '@/features/calls/useIncomingCall';
 
-const ConversationsIcon = memo(({ color, size }: { color: string; size: number }) => <MessageCircle size={size} color={color} />);
-const ContactsIcon = memo(({ color, size }: { color: string; size: number }) => <Users size={size} color={color} />);
-const ProfileIcon = memo(({ color, size }: { color: string; size: number }) => <User size={size} color={color} />);
+const ConversationsIcon = memo(({ color, size }: { color: ColorValue; size: number; focused?: boolean }) => <MessageCircle size={size} color={color as string} />);
+const ContactsIcon = memo(({ color, size }: { color: ColorValue; size: number; focused?: boolean }) => <Users size={size} color={color as string} />);
+const ProfileIcon = memo(({ color, size }: { color: ColorValue; size: number; focused?: boolean }) => <User size={size} color={color as string} />);
 
 export default function MainLayout() {
   const { colors } = useTheme();
@@ -36,7 +36,7 @@ export default function MainLayout() {
   }, []);
 
   const renderTabBar = useCallback(
-    (props: React.ComponentProps<typeof BottomTabBar>) => <BottomTabBar {...props} />,
+    (props: any) => <BottomTabBar {...props} />,
     [],
   );
 

@@ -195,7 +195,9 @@ export default function AudioCallScreen() {
 
         <View style={{ alignItems: 'center' }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <PhoneCall size={16} color={state === 'connected' ? colors.success : colors.textSecondary} style={{ marginRight: 6 }} />
+            <View style={{ marginRight: 6 }}>
+              <PhoneCall size={16} color={state === 'connected' ? colors.success : colors.textSecondary} />
+            </View>
             <Text style={{ ...typography.caption, color: state === 'connected' ? colors.success : colors.textSecondary }}>
               {statusText}
             </Text>

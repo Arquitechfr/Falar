@@ -23,7 +23,7 @@ export interface UserProfile {
 
 export async function searchUser(phone: string): Promise<UserSearchResult | null> {
   try {
-    const res = await api.get<UserSearchResult>('/users/search', { params: { phone } });
+    const res = await api.get<UserSearchResult>(`/users/search?phone=${encodeURIComponent(phone)}`);
     return res.data;
   } catch {
     return null;

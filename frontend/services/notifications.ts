@@ -1,14 +1,15 @@
 import { Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
 
 export async function registerForPushNotifications(): Promise<string | null> {
   try {
-    const Notifications = await import('expo-notifications');
-
     Notifications.setNotificationHandler({
       handleNotification: async () => ({
         shouldShowAlert: true,
         shouldPlaySound: true,
         shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
       }),
     });
 

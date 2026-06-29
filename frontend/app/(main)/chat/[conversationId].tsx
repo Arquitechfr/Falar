@@ -92,7 +92,7 @@ export default function ChatScreen() {
   }>();
 
   const currentUserId = useAuthStore((s) => s.user?.id);
-  const flashListRef = useRef<FlashList<ChatMessage>>(null);
+  const flashListRef = useRef<any>(null);
   const [contextMenuMsg, setContextMenuMsg] = useState<ChatMessage | null>(null);
 
   const {
@@ -246,10 +246,8 @@ export default function ChatScreen() {
           data={messages}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
-          inverted
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.3}
-          estimatedItemSize={60}
           contentContainerStyle={contentContainerStyle}
           ListFooterComponent={
             isFetchingNextPage ? (

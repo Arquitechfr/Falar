@@ -37,7 +37,7 @@ export default function SearchScreen() {
     setLoading(true);
     setSearched(true);
     try {
-      const res = await api.get<SearchResult>('/search', { params: { q } });
+      const res = await api.get<SearchResult>(`/search?q=${encodeURIComponent(q)}`);
       setResults(res.data);
     } catch {
       toast.show('Erreur lors de la recherche', 'error');
@@ -63,7 +63,7 @@ export default function SearchScreen() {
     });
   }, [router]);
 
-  const sections = [
+  const sections: any[] = [
     { title: 'Contacts', data: results.users, icon: <User size={16} color={colors.textSecondary} /> },
     { title: 'Médias', data: results.media, icon: <ImageIcon size={16} color={colors.textSecondary} /> },
   ].filter((s) => s.data.length > 0);
@@ -76,7 +76,6 @@ export default function SearchScreen() {
           value={query}
           onChangeText={setQuery}
           placeholder="Rechercher des contacts, médias..."
-          autoFocus
         />
       </View>
 
@@ -96,7 +95,7 @@ export default function SearchScreen() {
         <SectionList
           sections={sections}
           keyExtractor={(item, index) => `${item.id}-${index}`}
-          renderItem={({ item, section }) => {
+          renderItem={({ item, section }: any) => {
             if (section.title === 'Contacts') {
               const user = item as SearchResult['users'][0];
               return (

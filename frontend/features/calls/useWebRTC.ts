@@ -18,6 +18,9 @@ type RTCIceCandidate = any;
 type RTCSessionDescription = any;
 type MediaStream = any;
 type MediaStreamConstraints = any;
+type MediaStreamTrack = any;
+type RTCPeerConnectionIceEvent = any;
+type RTCTrackEvent = any;
 
 const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
@@ -56,7 +59,7 @@ export function useWebRTC() {
 
   const cleanup = useCallback(() => {
     if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach((t) => t.stop());
+      localStreamRef.current.getTracks().forEach((t: MediaStreamTrack) => t.stop());
       localStreamRef.current = null;
     }
     if (pcRef.current && typeof pcRef.current.close === 'function') {
@@ -95,7 +98,7 @@ export function useWebRTC() {
     const webrtc = getWebRTC();
     const pc = new webrtc.RTCPeerConnection(PC_CONFIG);
 
-    pc.onicecandidate = (event) => {
+    pc.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
       if (event.candidate) {
         const socket = getSocket();
         if (socket) {
@@ -107,7 +110,7 @@ export function useWebRTC() {
       }
     };
 
-    pc.ontrack = (event) => {
+    pc.ontrack = (event: RTCTrackEvent) => {
       if (event.streams && event.streams[0]) {
         setRemoteStream(event.streams[0]);
       }
@@ -131,7 +134,7 @@ export function useWebRTC() {
       const stream = await getLocalStream(type === 'video');
       const pc = createPeerConnection();
 
-      stream.getTracks().forEach((track) => {
+      stream.getTracks().forEach((track: MediaStreamTrack) => {
         pc.addTrack(track, stream);
       });
 
@@ -160,7 +163,7 @@ export function useWebRTC() {
       const stream = await getLocalStream(type === 'video');
       const pc = createPeerConnection();
 
-      stream.getTracks().forEach((track) => {
+      stream.getTracks().forEach((track: MediaStreamTrack) => {
         pc.addTrack(track, stream);
       });
 
@@ -185,7 +188,7 @@ export function useWebRTC() {
     if (!pcRef.current) {
       const stream = await getLocalStream(type === 'video');
       const pc = createPeerConnection();
-      stream.getTracks().forEach((track) => {
+      stream.getTracks().forEach((track: MediaStreamTrack) => {
         pc.addTrack(track, stream);
       });
       pcRef.current = pc;
@@ -233,7 +236,7 @@ export function useWebRTC() {
     if (!localStreamRef.current) return;
     const audioTracks = localStreamRef.current.getAudioTracks();
     const newMuted = !muted;
-    audioTracks.forEach((track) => {
+    audioTracks.forEach((track: MediaStreamTrack) => {
       track.enabled = !newMuted;
     });
     setMuted(newMuted);
@@ -243,7 +246,7 @@ export function useWebRTC() {
     if (!localStreamRef.current) return;
     const videoTracks = localStreamRef.current.getVideoTracks();
     const newEnabled = !videoEnabled;
-    videoTracks.forEach((track) => {
+    videoTracks.forEach((track: MediaStreamTrack) => {
       track.enabled = newEnabled;
     });
     setVideoEnabled(newEnabled);

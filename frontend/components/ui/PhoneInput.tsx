@@ -49,7 +49,7 @@ export function PhoneInput({
   const validateAndEmit = useCallback(
     (national: string, c: Country) => {
       const fullNumber = `${c.dialCode}${national}`;
-      const parsed = parsePhoneNumberFromString(fullNumber, c.iso2);
+      const parsed = parsePhoneNumberFromString(fullNumber, { defaultCountry: c.iso2 as any });
       const isValid = parsed?.isValid() ?? false;
       onChangePhoneNumber(isValid ? parsed!.format('E.164') : fullNumber);
       onChangeValidity(isValid);
@@ -180,7 +180,9 @@ export function PhoneInput({
               height: 44,
             }}
           >
-            <SearchIcon size={18} color={colors.textSecondary} style={{ marginRight: spacing.sm }} />
+            <View style={{ marginRight: spacing.sm }}>
+              <SearchIcon size={18} color={colors.textSecondary} />
+            </View>
             <TextInput
               value={search}
               onChangeText={setSearch}

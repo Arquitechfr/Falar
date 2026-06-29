@@ -1,4 +1,5 @@
-import { useEffect, useCallback, useRef, useMemo, InteractionManager } from 'react';
+import { useEffect, useCallback, useRef, useMemo } from 'react';
+import { InteractionManager } from 'react-native';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getMessages, sendMessage as apiSendMessage, updateMessageStatus, type Message } from './chatApi';
 import { useChatStore, type ChatMessage } from './chatStore';

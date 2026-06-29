@@ -91,9 +91,9 @@ export default function IncomingCallScreen() {
     await webrtc.acceptIncomingCall();
 
     if (params.type === 'video') {
-      router.replace('/(main)/call/video', { params: { recipientName: callerName, recipientId: params.callerId } });
+      router.replace({ pathname: '/(main)/call/video', params: { recipientName: callerName, recipientId: params.callerId } });
     } else {
-      router.replace('/(main)/call/audio', { params: { recipientName: callerName, recipientId: params.callerId } });
+      router.replace({ pathname: '/(main)/call/audio', params: { recipientName: callerName, recipientId: params.callerId } });
     }
   }, [webrtc, params, callerName, router]);
 

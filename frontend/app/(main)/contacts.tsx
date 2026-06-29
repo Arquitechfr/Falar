@@ -84,7 +84,9 @@ const ContactRow = memo(function ContactRow({ item, onPress, onInvite }: Contact
                 borderRadius: 20,
               })}
             >
-              <MessageCircle size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+              <View style={{ marginRight: 4 }}>
+                <MessageCircle size={14} color="#FFFFFF" />
+              </View>
               <Text style={{ ...typography.caption, color: '#FFFFFF', fontWeight: '600' }}>Message</Text>
             </Pressable>
           ) : (
@@ -99,7 +101,9 @@ const ContactRow = memo(function ContactRow({ item, onPress, onInvite }: Contact
                 borderRadius: 20,
               })}
             >
-              <ShareIcon size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+              <View style={{ marginRight: 4 }}>
+                <ShareIcon size={14} color="#FFFFFF" />
+              </View>
               <Text style={{ ...typography.caption, color: '#FFFFFF', fontWeight: '600' }}>Inviter</Text>
             </Pressable>
           )}

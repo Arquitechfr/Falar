@@ -59,13 +59,13 @@ export const MessageBubble = memo(function MessageBubble({ message, isMine, onRe
   const panGesture = useMemo(
     () =>
       Gesture.Pan()
-        .activeActivationDistance(20)
+        .minDistance(10)
         .failOffsetY([-5, 5])
-        .onUpdate((e) => {
+        .onUpdate((e: any) => {
           const direction = isMine ? -1 : 1;
           translateX.value = Math.max(0, e.translationX * direction) * direction;
         })
-        .onEnd((e) => {
+        .onEnd((e: any) => {
           const direction = isMine ? -1 : 1;
           const shouldReply = Math.abs(e.translationX) > 60 && e.translationX * direction > 0;
           if (shouldReply) {

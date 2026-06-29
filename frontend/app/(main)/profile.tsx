@@ -15,6 +15,7 @@ import { spacing } from '@/constants/spacing';
 import { radii } from '@/constants/theme';
 import { Avatar, Input, Button, ActionSheet, Modal } from '@/components/ui';
 import { Shield, Phone, User, Bell, LogOut, Edit, Camera, QrCode, Share as ShareIcon, Settings as SettingsIcon, ChevronRight } from '@/components/ui/Icons';
+import api from '@/services/api';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -69,7 +70,6 @@ export default function ProfileScreen() {
       } as never);
 
       logger.log('[avatar] FormData created, isFormData:', formData instanceof FormData);
-      const api = (await import('@/services/api')).default;
       const res = await api.post('/media/upload', formData);
       logger.log('[avatar] upload response:', res.status, res.data);
       const avatarUrl = res.data.mediaUrl;
@@ -162,7 +162,9 @@ export default function ProfileScreen() {
             })}
           >
             <View style={{ alignItems: 'center' }}>
-              <QrCode size={20} color={colors.primary} style={{ marginBottom: 6 }} />
+              <View style={{ marginBottom: 6 }}>
+                <QrCode size={20} color={colors.primary} />
+              </View>
               <Text style={{ ...typography.body, color: colors.primary }}>QR Code</Text>
             </View>
           </Pressable>
@@ -177,7 +179,9 @@ export default function ProfileScreen() {
             })}
           >
             <View style={{ alignItems: 'center' }}>
-              <ShareIcon size={20} color={colors.primary} style={{ marginBottom: 6 }} />
+              <View style={{ marginBottom: 6 }}>
+                <ShareIcon size={20} color={colors.primary} />
+              </View>
               <Text style={{ ...typography.body, color: colors.primary }}>Partager</Text>
             </View>
           </Pressable>
@@ -188,7 +192,9 @@ export default function ProfileScreen() {
           {/* Phone */}
           <View style={{ backgroundColor: colors.card, borderRadius: radii.md, padding: spacing.md, gap: spacing.sm }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Phone size={18} color={colors.textSecondary} style={{ marginRight: spacing.sm }} />
+              <View style={{ marginRight: spacing.sm }}>
+                <Phone size={18} color={colors.textSecondary} />
+              </View>
               <Text style={{ ...typography.captionMedium, color: colors.textSecondary }}>Téléphone</Text>
             </View>
             <Text style={{ ...typography.body, color: colors.textPrimary }}>{user?.phone}</Text>
@@ -198,12 +204,16 @@ export default function ProfileScreen() {
           <View style={{ backgroundColor: colors.card, borderRadius: radii.md, padding: spacing.md, gap: spacing.sm }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <User size={18} color={colors.textSecondary} style={{ marginRight: spacing.sm }} />
+                <View style={{ marginRight: spacing.sm }}>
+                  <User size={18} color={colors.textSecondary} />
+                </View>
                 <Text style={{ ...typography.captionMedium, color: colors.textSecondary }}>Nom d'affichage</Text>
               </View>
               {editingField !== 'name' && (
                 <Pressable onPress={() => setEditingField('name')} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Edit size={14} color={colors.primary} style={{ marginRight: 4 }} />
+                  <View style={{ marginRight: 4 }}>
+                    <Edit size={14} color={colors.primary} />
+                  </View>
                   <Text style={{ ...typography.captionMedium, color: colors.primary }}>Modifier</Text>
                 </Pressable>
               )}
@@ -231,7 +241,9 @@ export default function ProfileScreen() {
               </View>
               {editingField !== 'username' && (
                 <Pressable onPress={() => setEditingField('username')} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Edit size={14} color={colors.primary} style={{ marginRight: 4 }} />
+                  <View style={{ marginRight: 4 }}>
+                    <Edit size={14} color={colors.primary} />
+                  </View>
                   <Text style={{ ...typography.captionMedium, color: colors.primary }}>Modifier</Text>
                 </Pressable>
               )}
@@ -259,7 +271,9 @@ export default function ProfileScreen() {
               <Text style={{ ...typography.captionMedium, color: colors.textSecondary }}>Bio</Text>
               {editingField !== 'bio' && (
                 <Pressable onPress={() => setEditingField('bio')} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Edit size={14} color={colors.primary} style={{ marginRight: 4 }} />
+                  <View style={{ marginRight: 4 }}>
+                    <Edit size={14} color={colors.primary} />
+                  </View>
                   <Text style={{ ...typography.captionMedium, color: colors.primary }}>Modifier</Text>
                 </Pressable>
               )}
@@ -283,7 +297,9 @@ export default function ProfileScreen() {
 
           {/* Encryption */}
           <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: radii.md, padding: spacing.md }}>
-            <Shield size={18} color={colors.success} style={{ marginRight: spacing.sm }} />
+            <View style={{ marginRight: spacing.sm }}>
+              <Shield size={18} color={colors.success} />
+            </View>
             <Text style={{ ...typography.caption, color: colors.textSecondary, flex: 1 }}>
               Vos messages sont chiffrés de bout en bout. Vos clés ne quittent jamais votre appareil.
             </Text>

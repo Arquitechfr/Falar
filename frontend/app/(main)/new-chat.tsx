@@ -70,7 +70,9 @@ const NewChatRow = memo(function NewChatRow({ item, onPress, onInvite }: NewChat
                 borderRadius: 16,
               }}
             >
-              <ShareIcon size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+              <View style={{ marginRight: 4 }}>
+                <ShareIcon size={14} color="#FFFFFF" />
+              </View>
               <Text style={{ ...typography.micro, color: '#FFFFFF', fontWeight: '600' }}>Inviter</Text>
             </View>
           )}

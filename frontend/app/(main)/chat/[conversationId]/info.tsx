@@ -144,7 +144,9 @@ export default function ConversationInfoScreen() {
 
           {/* Encryption info */}
           <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: radii.md, padding: spacing.md }}>
-            <Shield size={18} color={colors.success} style={{ marginRight: spacing.sm }} />
+            <View style={{ marginRight: spacing.sm }}>
+              <Shield size={18} color={colors.success} />
+            </View>
             <Text style={{ ...typography.caption, color: colors.textSecondary, flex: 1 }}>
               Les messages de cette conversation sont chiffrés de bout en bout.
             </Text>

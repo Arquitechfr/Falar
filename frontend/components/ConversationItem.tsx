@@ -15,7 +15,8 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing } from '@/constants/spacing';
 import { Avatar } from '@/components/ui';
-import { ContextMenu, type ActionSheetItem } from '@/components/ui/ContextMenu';
+import { ContextMenu } from '@/components/ui/ContextMenu';
+import { ActionSheet, type ActionSheetItem } from '@/components/ui/ActionSheet';
 import { Pin, Archive, Trash, BellOff } from '@/components/ui/Icons';
 
 const SPRING_CONFIG = { damping: 15, stiffness: 300, mass: 0.8 };
@@ -115,12 +116,12 @@ export const ConversationItem = memo(function ConversationItem({
   const panGesture = useMemo(
     () =>
       Gesture.Pan()
-        .activeActivationDistance(20)
+        .minDistance(10)
         .failOffsetY([-5, 5])
-        .onUpdate((e) => {
+        .onUpdate((e: any) => {
           translateX.value = e.translationX;
         })
-        .onEnd((e) => {
+        .onEnd((e: any) => {
           if (e.translationX < -SWIPE_THRESHOLD) {
             runOnJS(handleDelete)();
           } else if (e.translationX > SWIPE_THRESHOLD) {

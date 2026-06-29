@@ -24,13 +24,13 @@ export function Avatar({ name, size = 48, avatarUrl, online = false }: AvatarPro
           width: size,
           height: size,
           borderRadius: size / 2,
-          backgroundColor: colors.surface,
+          backgroundColor: colors.secondaryBackground,
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
         }}
       >
-        <View style={{ width: '100%', height: '100%', backgroundColor: colors.surface }} />
+        <View style={{ width: '100%', height: '100%', backgroundColor: colors.secondaryBackground }} />
       </View>
     );
   }

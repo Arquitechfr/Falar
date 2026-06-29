@@ -112,7 +112,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               ...shadows.md,
             }}
           >
-            <Icon size={22} color={iconColor[toast.type]} style={{ marginRight: spacing.sm }} />
+            <View style={{ marginRight: spacing.sm }}>
+              <Icon size={22} color={iconColor[toast.type]} />
+            </View>
             <Text
               style={{
                 ...typography.bodyMedium,

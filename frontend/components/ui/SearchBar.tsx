@@ -65,7 +65,9 @@ export function SearchBar({
         style,
       ]}
     >
-      <Search size={18} color={colors.textSecondary} style={{ marginRight: spacing.sm }} />
+      <View style={{ marginRight: spacing.sm }}>
+        <Search size={18} color={colors.textSecondary} />
+      </View>
       <TextInput
         style={textInputStyle}
         value={value}

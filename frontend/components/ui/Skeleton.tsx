@@ -43,7 +43,7 @@ export function Skeleton({ width = '100%', height = 20, radius = 8, style }: Ske
           height,
           borderRadius: radius,
           backgroundColor: colors.secondaryBackground,
-        },
+        } as ViewStyle,
         animatedStyle,
         style,
       ]}

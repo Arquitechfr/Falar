@@ -24,9 +24,9 @@ export async function getMessages(
   before?: string,
   limit: number = 30,
 ): Promise<GetMessagesResponse> {
-  const params: Record<string, string | number> = { limit };
-  if (before) params.before = before;
-  const res = await api.get<GetMessagesResponse>(`/messages/${conversationId}`, { params });
+  const queryParams = new URLSearchParams({ limit: limit.toString() });
+  if (before) queryParams.append('before', before);
+  const res = await api.get<GetMessagesResponse>(`/messages/${conversationId}?${queryParams.toString()}`);
   return res.data;
 }
 

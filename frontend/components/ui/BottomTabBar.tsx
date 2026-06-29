@@ -1,5 +1,5 @@
 import { useCallback, memo, useMemo, type ReactNode } from 'react';
-import { View, Pressable, Text, ViewStyle } from 'react-native';
+import { View, Pressable, Text, ViewStyle, type ColorValue } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -20,17 +20,14 @@ interface TabDescriptor {
   options: {
     title?: string;
     href?: string | null;
-    tabBarIcon?: (props: { color: string; size: number }) => ReactNode;
+    tabBarIcon?: (props: { focused: boolean; color: ColorValue; size: number }) => ReactNode;
   };
 }
 
-interface BottomTabBarProps {
-  state: { index: number; routes: TabRoute[] };
+interface CustomBottomTabBarProps {
+  state: any;
   descriptors: Record<string, TabDescriptor>;
-  navigation: {
-    navigate: (name: string) => void;
-    emit: (event: { type: string; target: string; canPreventDefault?: boolean }) => { defaultPrevented: boolean };
-  };
+  navigation: any;
   style?: ViewStyle;
 }
 
@@ -78,7 +75,7 @@ const TabItem = memo(function TabItem({
       }}
     >
       <Animated.View style={[animatedStyle, { alignItems: 'center' }]}>
-        {Icon && Icon({ color: isFocused ? colors.primary : colors.textSecondary, size: 24 })}
+        {Icon && Icon({ focused: isFocused, color: isFocused ? colors.primary : colors.textSecondary, size: 24 })}
         <Text
           style={{
             ...typography.micro,
@@ -91,9 +88,9 @@ const TabItem = memo(function TabItem({
       </Animated.View>
     </Pressable>
   );
-}
+});
 
-export const BottomTabBar = memo(function BottomTabBar({ state, descriptors, navigation, style }: BottomTabBarProps) {
+export const BottomTabBar = memo(function BottomTabBar({ state, descriptors, navigation, style }: CustomBottomTabBarProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -114,7 +111,7 @@ export const BottomTabBar = memo(function BottomTabBar({ state, descriptors, nav
   );
 
   const visibleRoutes = useMemo(
-    () => state.routes.filter((route) => descriptors[route.key]?.options?.tabBarIcon != null),
+    () => state.routes.filter((route: TabRoute) => descriptors[route.key]?.options?.tabBarIcon != null),
     [state.routes, descriptors],
   );
 
@@ -131,7 +128,7 @@ export const BottomTabBar = memo(function BottomTabBar({ state, descriptors, nav
         style,
       ]}
     >
-      {visibleRoutes.map((route) => {
+      {visibleRoutes.map((route: TabRoute) => {
         const index = state.routes.indexOf(route);
         return (
           <TabItem

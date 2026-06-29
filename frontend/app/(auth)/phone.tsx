@@ -95,7 +95,9 @@ export default function PhoneScreen() {
               marginTop: spacing.xl,
             }}
           >
-            <Shield size={14} color={colors.textSecondary} style={{ marginRight: 6 }} />
+            <View style={{ marginRight: 6 }}>
+              <Shield size={14} color={colors.textSecondary} />
+            </View>
             <Text style={{ ...typography.caption, color: colors.textSecondary }}>
               Vos messages sont chiffrés de bout en bout
             </Text>

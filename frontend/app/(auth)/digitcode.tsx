@@ -203,7 +203,7 @@ export default function DigitCodeScreen() {
             )}
 
             {isNewUser && step === 'confirm' && confirmPin.length === PIN_LENGTH && pin !== confirmPin && (
-              <Text style={{ ...typography.caption, color: colors.error, marginTop: spacing.sm }}>
+              <Text style={{ ...typography.caption, color: colors.danger, marginTop: spacing.sm }}>
                 Les codes ne correspondent pas
               </Text>
             )}
@@ -238,7 +238,9 @@ export default function DigitCodeScreen() {
               paddingHorizontal: spacing.md,
             }}
           >
-            <Shield size={14} color={colors.textSecondary} style={{ marginRight: 6 }} />
+            <View style={{ marginRight: 6 }}>
+              <Shield size={14} color={colors.textSecondary} />
+            </View>
             <Text style={{ ...typography.caption, color: colors.textSecondary, textAlign: 'center' }}>
               Vos clés de chiffrement ne quittent jamais votre appareil
             </Text>

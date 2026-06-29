@@ -147,18 +147,17 @@ export default function ProfileScreen() {
         </View>
 
         {/* Action buttons row */}
-        <View style={{ flexDirection: 'row', paddingHorizontal: spacing.lg, marginBottom: spacing.lg }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'center', paddingHorizontal: spacing.lg, marginBottom: spacing.lg, gap: spacing.md }}>
           <Pressable
             onPress={() => setShowQR(true)}
             style={({ pressed }) => ({
-              flex: 1,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: colors.card,
               borderRadius: radii.md,
               paddingVertical: spacing.md,
-              marginRight: spacing.md,
+              paddingHorizontal: spacing.lg,
               opacity: pressed ? 0.7 : 1,
             })}
           >
@@ -168,13 +167,13 @@ export default function ProfileScreen() {
           <Pressable
             onPress={handleShare}
             style={({ pressed }) => ({
-              flex: 1,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: colors.card,
               borderRadius: radii.md,
               paddingVertical: spacing.md,
+              paddingHorizontal: spacing.lg,
               opacity: pressed ? 0.7 : 1,
             })}
           >

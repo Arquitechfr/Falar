@@ -6,7 +6,6 @@
   "main": "dist/app.js",
   "scripts": {
     "dev": "tsx watch --env-file=.env src/app.ts",
-    "build": "tsc",
     "start": "node --env-file=.env dist/app.js",
     "test": "vitest run",
     "test:watch": "vitest",

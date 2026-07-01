@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native';
+import { View, Text, Image } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 
 interface AvatarProps {
@@ -19,18 +19,37 @@ export function Avatar({ name, size = 48, avatarUrl, online = false }: AvatarPro
 
   if (avatarUrl) {
     return (
-      <View
-        style={{
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          backgroundColor: colors.secondaryBackground,
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-        }}
-      >
-        <View style={{ width: '100%', height: '100%', backgroundColor: colors.secondaryBackground }} />
+      <View style={{ position: 'relative' }}>
+        <View
+          style={{
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: colors.secondaryBackground,
+            overflow: 'hidden',
+          }}
+        >
+          <Image
+            source={{ uri: avatarUrl }}
+            style={{ width: '100%', height: '100%' }}
+            resizeMode="cover"
+          />
+        </View>
+        {online && (
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              width: size * 0.25,
+              height: size * 0.25,
+              borderRadius: (size * 0.25) / 2,
+              backgroundColor: colors.success,
+              borderWidth: 2,
+              borderColor: colors.background,
+            }}
+          />
+        )}
       </View>
     );
   }

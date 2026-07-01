@@ -8,11 +8,17 @@ export const updateMeSchema = z.object({
   bio: z.string().max(200).optional(),
   username: z.string().min(3).max(30).optional(),
   deviceToken: z.string().min(1).optional(),
+  allowDirectMessages: z.boolean().optional(),
 });
 
 export const searchUserSchema = z.object({
   phone: z.string().regex(e164Regex, 'Phone must be in E.164 format'),
 });
 
+export const searchByUsernameSchema = z.object({
+  username: z.string().min(3).max(30),
+});
+
 export type UpdateMeInput = z.infer<typeof updateMeSchema>;
 export type SearchUserInput = z.infer<typeof searchUserSchema>;
+export type SearchByUsernameInput = z.infer<typeof searchByUsernameSchema>;

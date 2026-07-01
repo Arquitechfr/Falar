@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, memo } from 'react';
+import React, { useEffect, useCallback, memo, type ReactNode } from 'react';
 import { View, Text, type ColorValue } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useNetInfo } from '@react-native-community/netinfo';
@@ -10,9 +10,9 @@ import { BottomTabBar } from '@/components/ui/BottomTabBar';
 import { MessageCircle, User, Users } from '@/components/ui/Icons';
 import { useIncomingCall } from '@/features/calls/useIncomingCall';
 
-const ConversationsIcon = memo(({ color, size }: { color: ColorValue; size: number; focused?: boolean }) => <MessageCircle size={size} color={color as string} />);
-const ContactsIcon = memo(({ color, size }: { color: ColorValue; size: number; focused?: boolean }) => <Users size={size} color={color as string} />);
-const ProfileIcon = memo(({ color, size }: { color: ColorValue; size: number; focused?: boolean }) => <User size={size} color={color as string} />);
+const ConversationsIcon = memo(({ color, size }: { color: ColorValue; size: number; focused?: boolean }): ReactNode => <MessageCircle size={size} color={color as string} />);
+const ContactsIcon = memo(({ color, size }: { color: ColorValue; size: number; focused?: boolean }): ReactNode => <Users size={size} color={color as string} />);
+const ProfileIcon = memo(({ color, size }: { color: ColorValue; size: number; focused?: boolean }): ReactNode => <User size={size} color={color as string} />);
 
 export default function MainLayout() {
   const { colors } = useTheme();
@@ -79,6 +79,7 @@ export default function MainLayout() {
         <Tabs.Screen name="settings" options={{ href: null, headerShown: false }} />
         <Tabs.Screen name="new-chat" options={{ href: null, headerShown: false }} />
         <Tabs.Screen name="search" options={{ href: null, headerShown: false }} />
+        <Tabs.Screen name="add" options={{ href: null, headerShown: false }} />
         <Tabs.Screen name="notifications" options={{ href: null, headerShown: false }} />
       </Tabs>
     </View>

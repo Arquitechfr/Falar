@@ -9,6 +9,7 @@ export interface AuthUser {
   bio?: string;
   username?: string;
   keySalt?: string;
+  allowDirectMessages?: boolean;
 }
 
 export interface VerifyOtpResponse {

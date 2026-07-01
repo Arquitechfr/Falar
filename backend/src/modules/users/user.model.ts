@@ -11,6 +11,7 @@ export interface IUser {
   username: string;
   deviceToken: string;
   keySalt: string;
+  allowDirectMessages: boolean;
   lastSeen: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -27,6 +28,7 @@ const userSchema = new Schema<IUser>(
     username: { type: String, default: '', index: true },
     deviceToken: { type: String, default: '' },
     keySalt: { type: String, default: '' },
+    allowDirectMessages: { type: Boolean, default: true },
     lastSeen: { type: Date, default: Date.now },
   },
   { timestamps: true },

@@ -62,6 +62,7 @@ export default function ConversationsScreen() {
   const { colors } = useTheme();
   const toast = useToast();
   const currentUserDisplayName = useAuthStore((s) => s.user?.displayName);
+  const currentUserUsername = useAuthStore((s) => s.user?.username);
   const currentUserAvatarUrl = useAuthStore((s) => s.user?.avatarUrl);
   const { data: conversations, isLoading, refetch, isRefetching } = useConversations();
   const [showSearch, setShowSearch] = useState(false);
@@ -146,6 +147,29 @@ export default function ConversationsScreen() {
     [handleConversationPress],
   );
 
+  const emptyComponent = useMemo(
+    () => (
+      <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: spacing.lg, minHeight: 400 }}>
+        {localSearch ? (
+          <EmptyState
+            icon={<SearchIcon size={32} color={colors.textSecondary} />}
+            title="Aucun résultat"
+            description={`Aucune conversation ne correspond à "${localSearch}"`}
+          />
+        ) : (
+          <EmptyState
+            icon={<MessageCircle size={32} color={colors.textSecondary} />}
+            title="Aucune conversation"
+            description="Démarrez une nouvelle conversation en appuyant sur le bouton +"
+            actionLabel="Nouvelle conversation"
+            onAction={handleShowSearch}
+          />
+        )}
+      </View>
+    ),
+    [localSearch, colors.textSecondary, handleShowSearch],
+  );
+
   const renderSkeleton = useCallback(() => (
     <View style={{ paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 2, flexDirection: 'row', alignItems: 'center' }}>
       <View style={{ marginRight: spacing.sm + 2 }}>
@@ -188,11 +212,11 @@ export default function ConversationsScreen() {
               {getGreeting()},
             </Text>
             <Text style={{ ...typography.heading, color: colors.textPrimary }}>
-              {currentUserDisplayName?.split(' ')[0] || 'Falar'}
+              {currentUserUsername || currentUserDisplayName?.split(' ')[0] || 'Falar'}
             </Text>
           </View>
           <Pressable onPress={() => router.push('/(main)/profile')} hitSlop={12}>
-            <Avatar name={currentUserDisplayName || '?'} size={40} avatarUrl={currentUserAvatarUrl} />
+            <Avatar name={currentUserUsername || currentUserDisplayName || '?'} size={40} avatarUrl={currentUserAvatarUrl} />
           </Pressable>
         </View>
         <SearchBar
@@ -215,26 +239,7 @@ export default function ConversationsScreen() {
           />
         }
         ItemSeparatorComponent={Separator}
-        ListEmptyComponent={useMemo(
-          () => (
-            localSearch ? (
-              <EmptyState
-                icon={<SearchIcon size={32} color={colors.textSecondary} />}
-                title="Aucun résultat"
-                description={`Aucune conversation ne correspond à "${localSearch}"`}
-              />
-            ) : (
-              <EmptyState
-                icon={<MessageCircle size={32} color={colors.textSecondary} />}
-                title="Aucune conversation"
-                description="Démarrez une nouvelle conversation en appuyant sur le bouton +"
-                actionLabel="Nouvelle conversation"
-                onAction={handleShowSearch}
-              />
-            )
-          ),
-          [localSearch, colors.textSecondary, handleShowSearch],
-        )}
+        ListEmptyComponent={emptyComponent}
         contentContainerStyle={contentContainerStyle}
       />
 

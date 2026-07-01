@@ -1,7 +1,33 @@
 import type { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 
-export function errorMiddleware(err: unknown, _req: Request, res: Response, _next: NextFunction): void {
+type BodyParserError = SyntaxError & { statusCode: number; body: unknown; type: string };
+
+function isBodyParserError(err: unknown): err is BodyParserError {
+  return err instanceof SyntaxError
+    && 'statusCode' in err
+    && (err as { statusCode: number }).statusCode === 400
+    && 'type' in err
+    && (err as { type: string }).type === 'entity.parse.failed';
+}
+
+export function errorMiddleware(err: unknown, req: Request, res: Response, _next: NextFunction): void {
+  if (isBodyParserError(err)) {
+    const rawBody = (req as Request & { rawBody?: string }).rawBody;
+    console.warn('[BodyParser] Invalid JSON body:', {
+      method: req.method,
+      path: req.path,
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+      body: rawBody ?? err.body,
+      type: err.type,
+    });
+    res.status(400).json({
+      error: { code: 'INVALID_JSON_BODY', message: 'Invalid JSON body' },
+    });
+    return;
+  }
+
   if (err instanceof ZodError) {
     res.status(400).json({
       error: {

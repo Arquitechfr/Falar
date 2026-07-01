@@ -37,7 +37,6 @@ export default function DigitCodeScreen() {
   const [step, setStep] = useState<'pin' | 'confirm'>('pin');
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
-  const confirmPinRef = useRef('');
   const [loading, setLoading] = useState(false);
   const isSubmitting = useRef(false);
 
@@ -50,15 +49,14 @@ export default function DigitCodeScreen() {
 
   const handleConfirmPinFilled = useCallback((value: string) => {
     setConfirmPin(value);
-    confirmPinRef.current = value;
   }, []);
 
   const handleSubmit = useCallback(async () => {
     if (isSubmitting.current) return;
     isSubmitting.current = true;
-    logger.log('[DigitCodeScreen] handleSubmit called', { isNewUser, phone: params.phone, code: params.code });
+    logger.log('[DigitCodeScreen] handleSubmit called', { isNewUser, phone: params.phone, code: params.code, step, pin, confirmPin });
 
-    const activePin = step === 'confirm' ? confirmPinRef.current : pin;
+    const activePin = step === 'confirm' ? confirmPin : pin;
 
     if (activePin.length !== PIN_LENGTH) {
       isSubmitting.current = false;
@@ -72,7 +70,7 @@ export default function DigitCodeScreen() {
       return;
     }
 
-    if (isNewUser && pin !== confirmPinRef.current) {
+    if (isNewUser && pin !== confirmPin) {
       isSubmitting.current = false;
       toast.show('Les codes ne correspondent pas', 'error');
       return;
@@ -142,6 +140,9 @@ export default function DigitCodeScreen() {
       ? 'Mémorisez-le bien, il protège vos messages.'
       : 'Entrez-le à nouveau pour confirmer'
     : 'Entrez votre code pour accéder à vos messages.';
+
+  const activePin = step === 'confirm' ? confirmPin : pin;
+  const isPinComplete = activePin.length === PIN_LENGTH;
 
   const theme = {
     containerStyle: styles.otpContainer,
@@ -226,6 +227,7 @@ export default function DigitCodeScreen() {
             label={loading ? 'Dérivation des clés...' : isNewUser ? 'Créer mon compte' : 'Se connecter'}
             onPress={handleSubmit}
             loading={loading}
+            disabled={!isPinComplete || loading}
             fullWidth
           />
 

@@ -66,7 +66,7 @@ export async function verifyOTPAndLogin(
   publicKey: string,
   deviceToken?: string,
   keySalt?: string,
-): Promise<{ accessToken: string; refreshToken: string; user: { id: string; phone: string; publicKey: string; displayName: string } }> {
+): Promise<{ accessToken: string; refreshToken: string; user: { id: string; phone: string; publicKey: string; displayName: string; allowDirectMessages: boolean } }> {
   const phoneHash = hashPhoneNumber(phone);
   let valid = false;
 
@@ -139,6 +139,7 @@ export async function verifyOTPAndLogin(
       phone: user.phoneE164,
       publicKey: user.publicKey,
       displayName: user.displayName,
+      allowDirectMessages: user.allowDirectMessages,
     },
   };
 }

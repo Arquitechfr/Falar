@@ -1,8 +1,13 @@
+import { useState, useCallback, useEffect } from 'react';
 import { View, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { List } from 'react-native-paper';
+import { List, Switch } from 'react-native-paper';
 import { SafeScreen } from '@/components/SafeScreen';
 import { useTheme } from '@/hooks/useTheme';
+import { useToast } from '@/components/ui/Toast';
+import { useAuth } from '@/features/auth/useAuth';
+import { useAuthStore } from '@/features/auth/authStore';
+import { updateMe } from '@/features/users/usersApi';
 import { spacing } from '@/constants/spacing';
 import { ScreenHeader } from '@/components/ui';
 import { User, Shield, Bell, Moon, Database, Globe, HelpCircle, Info, ChevronRight, Users } from '@/components/ui/Icons';
@@ -10,6 +15,33 @@ import { User, Shield, Bell, Moon, Database, Globe, HelpCircle, Info, ChevronRig
 export default function SettingsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const toast = useToast();
+  const { user } = useAuth();
+  const [allowDirectMessages, setAllowDirectMessages] = useState(user?.allowDirectMessages !== false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setAllowDirectMessages(user.allowDirectMessages !== false);
+    }
+  }, [user?.allowDirectMessages]);
+
+  const handleToggleDirectMessages = useCallback(async (value: boolean) => {
+    setAllowDirectMessages(value);
+    setSaving(true);
+    try {
+      await updateMe({ allowDirectMessages: value });
+      if (user) {
+        useAuthStore.getState().login({ ...user, allowDirectMessages: value });
+      }
+      toast.show(value ? 'Vous pouvez être ajouté via QR code' : 'Nouveaux contacts désactivés', 'success');
+    } catch {
+      setAllowDirectMessages(!value);
+      toast.show('Échec de la mise à jour', 'error');
+    } finally {
+      setSaving(false);
+    }
+  }, [user, toast]);
 
   const iconBg = (icon: React.ReactNode) => (
     <View style={{
@@ -60,12 +92,19 @@ export default function SettingsScreen() {
             />
             <View style={{ height: 0.5, backgroundColor: colors.border, marginLeft: 60 }} />
             <List.Item
-              title="Confidentialité"
-              description="Activée"
+              title="Autoriser les nouveaux contacts"
+              description="Permet d'être ajouté via QR code ou pseudo"
               descriptionStyle={{ color: colors.textSecondary, fontFamily: 'Outfit_400Regular', fontSize: 13 }}
               titleStyle={{ color: colors.textPrimary, fontFamily: 'Outfit_400Regular', fontSize: 16 }}
               left={() => iconBg(<Shield size={20} color={colors.primary} />)}
-              right={rightArrow}
+              right={() => (
+                <Switch
+                  value={allowDirectMessages}
+                  onValueChange={handleToggleDirectMessages}
+                  disabled={saving}
+                  color={colors.primary}
+                />
+              )}
               style={{ paddingVertical: spacing.sm }}
             />
           </View>

@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
-import { View, Text, Pressable, ScrollView, Share, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, Pressable, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { List } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
+import QRCode from 'react-native-qrcode-svg';
 import { SafeScreen } from '@/components/SafeScreen';
 import { useAuthStore } from '@/features/auth/authStore';
 import { useAuth } from '@/features/auth/useAuth';
@@ -14,7 +15,7 @@ import { typography } from '@/constants/typography';
 import { spacing } from '@/constants/spacing';
 import { radii } from '@/constants/theme';
 import { Avatar, Input, Button, ActionSheet, Modal } from '@/components/ui';
-import { Shield, Phone, User, Bell, LogOut, Edit, Camera, QrCode, Share as ShareIcon, Settings as SettingsIcon, ChevronRight } from '@/components/ui/Icons';
+import { Shield, Phone, User, Bell, LogOut, Edit, Camera, QrCode, Settings as SettingsIcon, ChevronRight } from '@/components/ui/Icons';
 import api from '@/services/api';
 
 export default function ProfileScreen() {
@@ -84,16 +85,6 @@ export default function ProfileScreen() {
     }
   }, [user, toast]);
 
-  const handleShare = useCallback(async () => {
-    try {
-      await Share.share({
-        message: `Ajoutez-moi sur Falar : ${user?.phone}`,
-      });
-    } catch {
-      // silent
-    }
-  }, [user]);
-
   const handleLogout = useCallback(() => {
     setShowLogout(false);
     logout();
@@ -149,8 +140,8 @@ export default function ProfileScreen() {
           ) : null}
         </View>
 
-        {/* Action buttons row */}
-        <View style={{ flexDirection: 'row', justifyContent: 'center', paddingHorizontal: spacing.lg, marginBottom: spacing.lg, gap: spacing.md }}>
+        {/* QR Code button */}
+        <View style={{ alignItems: 'center', paddingHorizontal: spacing.lg, marginBottom: spacing.lg }}>
           <Pressable
             onPress={() => setShowQR(true)}
             style={({ pressed }) => ({
@@ -166,23 +157,6 @@ export default function ProfileScreen() {
                 <QrCode size={20} color={colors.primary} />
               </View>
               <Text style={{ ...typography.body, color: colors.primary }}>QR Code</Text>
-            </View>
-          </Pressable>
-          <Pressable
-            onPress={handleShare}
-            style={({ pressed }) => ({
-              backgroundColor: colors.card,
-              borderRadius: radii.md,
-              paddingVertical: spacing.md,
-              paddingHorizontal: spacing.xl,
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <View style={{ alignItems: 'center' }}>
-              <View style={{ marginBottom: 6 }}>
-                <ShareIcon size={20} color={colors.primary} />
-              </View>
-              <Text style={{ ...typography.body, color: colors.primary }}>Partager</Text>
             </View>
           </Pressable>
         </View>
@@ -344,12 +318,23 @@ export default function ProfileScreen() {
       <Modal visible={showQR} onClose={() => setShowQR(false)} title="Mon QR Code">
         <View style={{ alignItems: 'center', gap: spacing.md }}>
           <View style={{ backgroundColor: colors.background, borderRadius: radii.lg, padding: spacing.lg, alignItems: 'center' }}>
-            <QrCode size={180} color={colors.textPrimary} />
+            {user?.username ? (
+              <QRCode
+                value={`falar://add?u=${encodeURIComponent(user.username)}`}
+                size={180}
+                color={colors.textPrimary}
+                backgroundColor={colors.background}
+              />
+            ) : (
+              <QrCode size={180} color={colors.textPrimary} />
+            )}
           </View>
           <Text style={{ ...typography.body, color: colors.textSecondary, textAlign: 'center' }}>
             Scannez ce code pour ajouter {user?.displayName || 'cet utilisateur'} sur Falar
           </Text>
-          <Text style={{ ...typography.captionMedium, color: colors.primary }}>{user?.phone}</Text>
+          {user?.username ? (
+            <Text style={{ ...typography.captionMedium, color: colors.primary }}>@{user.username}</Text>
+          ) : null}
         </View>
       </Modal>
 

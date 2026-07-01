@@ -10,6 +10,16 @@ export interface UserSearchResult {
   publicKey: string;
 }
 
+export interface UsernameSearchResult {
+  id: string;
+  displayName: string;
+  avatarUrl: string;
+  bio: string;
+  username: string;
+  publicKey: string;
+  allowDirectMessages: boolean;
+}
+
 export interface UserProfile {
   id: string;
   phone: string;
@@ -24,6 +34,15 @@ export interface UserProfile {
 export async function searchUser(phone: string): Promise<UserSearchResult | null> {
   try {
     const res = await api.get<UserSearchResult>(`/users/search?phone=${encodeURIComponent(phone)}`);
+    return res.data;
+  } catch {
+    return null;
+  }
+}
+
+export async function searchByUsername(username: string): Promise<UsernameSearchResult | null> {
+  try {
+    const res = await api.get<UsernameSearchResult>(`/users/username/${encodeURIComponent(username)}`);
     return res.data;
   } catch {
     return null;
@@ -54,6 +73,7 @@ export async function updateMe(data: {
   bio?: string;
   username?: string;
   deviceToken?: string;
+  allowDirectMessages?: boolean;
 }): Promise<void> {
   await api.put('/users/me', data);
 }

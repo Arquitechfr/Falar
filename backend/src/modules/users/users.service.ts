@@ -15,6 +15,7 @@ export async function getMe(userId: string) {
     username: user.username,
     publicKey: user.publicKey,
     keySalt: user.keySalt,
+    allowDirectMessages: user.allowDirectMessages,
     lastSeen: user.lastSeen,
   };
 }
@@ -30,6 +31,7 @@ export async function getUserById(userId: string) {
     bio: user.bio,
     username: user.username,
     publicKey: user.publicKey,
+    allowDirectMessages: user.allowDirectMessages,
     lastSeen: user.lastSeen,
   };
 }
@@ -50,6 +52,20 @@ export async function searchByPhone(phone: string) {
     bio: user.bio,
     username: user.username,
     publicKey: user.publicKey,
+  };
+}
+
+export async function searchByUsername(username: string) {
+  const user = await User.findOne({ username }).lean();
+  if (!user) return null;
+  return {
+    id: user._id.toString(),
+    displayName: user.displayName,
+    avatarUrl: user.avatarUrl,
+    bio: user.bio,
+    username: user.username,
+    publicKey: user.publicKey,
+    allowDirectMessages: user.allowDirectMessages,
   };
 }
 

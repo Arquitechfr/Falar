@@ -75,7 +75,7 @@ const TabItem = memo(function TabItem({
       }}
     >
       <Animated.View style={[animatedStyle, { alignItems: 'center' }]}>
-        {Icon && Icon({ focused: isFocused, color: isFocused ? colors.primary : colors.textSecondary, size: 24 })}
+        {Icon && <Icon focused={isFocused} color={isFocused ? colors.primary : colors.textSecondary} size={24} />}
         <Text
           style={{
             ...typography.micro,

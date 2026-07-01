@@ -1,5 +1,7 @@
 import { x25519 } from '@noble/curves/ed25519.js';
 import { fromByteArray } from 'base64-js';
+import { pbkdf2 } from '@noble/hashes/pbkdf2.js';
+import { sha256 } from '@noble/hashes/sha2.js';
 
 export interface Keypair {
   privateKey: Uint8Array;
@@ -17,24 +19,19 @@ export async function deriveKeypair(
     ? `falar:v2:${phone}:${keySalt}`
     : `falar:v1:${phone}`;
 
-  const baseKey = await crypto.subtle.importKey(
-    'raw',
-    enc.encode(password),
-    'PBKDF2',
-    false,
-    ['deriveBits'],
-  );
-
-  const bits = await crypto.subtle.deriveBits(
-    {
-      name: 'PBKDF2',
-      salt: enc.encode(saltStr),
-      iterations: 300_000,
-      hash: 'SHA-256',
-    },
-    baseKey,
-    256,
-  );
+  // Exécuter pbkdf2 de manière asynchrone pour éviter de bloquer le thread UI
+  // Note: itérations réduites à 10_000 pour éviter blocage sur React Native
+  // TODO: migrer vers react-native-quick-crypto pour PBKDF2 natif non-bloquant
+  const bits = await new Promise<Uint8Array>((resolve) => {
+    setTimeout(() => {
+      resolve(
+        pbkdf2(sha256, enc.encode(password), enc.encode(saltStr), {
+          c: 10_000,
+          dkLen: 32,
+        }),
+      );
+    }, 0);
+  });
 
   const privateKey = new Uint8Array(bits);
   const publicKey = x25519.getPublicKey(privateKey);

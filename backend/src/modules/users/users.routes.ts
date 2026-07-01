@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware } from '../../middleware/auth.middleware.js';
-import { getMeController, updateMeController, searchUserController, getUserController, getContactsController } from './users.controller.js';
+import { getMeController, updateMeController, searchUserController, searchByUsernameController, getUserController, getContactsController } from './users.controller.js';
 
 const router = Router();
 
@@ -10,6 +10,7 @@ router.get('/me', getMeController);
 router.put('/me', updateMeController);
 router.get('/search', searchUserController);
 router.get('/contacts', getContactsController);
+router.get('/username/:username', searchByUsernameController);
 router.get('/:userId', getUserController);
 
 export default router;

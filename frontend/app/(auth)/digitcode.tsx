@@ -224,7 +224,7 @@ export default function DigitCodeScreen() {
           </View>
 
           <Button
-            label={loading ? 'Dérivation des clés...' : isNewUser ? 'Créer mon compte' : 'Se connecter'}
+            label={loading ? 'Sécurisation...' : isNewUser ? 'Créer mon compte' : 'Se connecter'}
             onPress={handleSubmit}
             loading={loading}
             disabled={!isPinComplete || loading}

@@ -39,7 +39,7 @@ export async function getConversations(userId: string): Promise<ConversationSumm
         unreadCount: {
           $sum: {
             $cond: [
-              { $and: [{ $eq: ['$recipientId', userId] }, { $ne: ['$status', 'read'] }] },
+              { $and: [{ $eq: ['$recipientId', new Types.ObjectId(userId)] }, { $ne: ['$status', 'read'] }] },
               1,
               0,
             ],

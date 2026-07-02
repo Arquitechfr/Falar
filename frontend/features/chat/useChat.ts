@@ -5,7 +5,6 @@ import { getMessages, sendMessage as apiSendMessage, updateMessageStatus, type M
 import { useChatStore, type ChatMessage } from './chatStore';
 import { encryptMessage, decryptMessage } from '@/features/crypto/encryption';
 import { useCryptoStore } from '@/features/crypto/cryptoStore';
-import { useAuthStore } from '@/features/auth/authStore';
 import { getSocket } from '@/services/socket';
 
 interface UseChatParams {
@@ -29,7 +28,6 @@ function toChatMessage(msg: Message, privateKey: Uint8Array | null, recipientPub
 
 export function useChat({ conversationId, recipientId, recipientPubKey }: UseChatParams) {
   const privateKey = useCryptoStore((s) => s.privateKey);
-  const currentUserId = useAuthStore((s) => s.user?.id ?? null);
   const messages = useChatStore((s) => s.messages);
   const isTyping = useChatStore((s) => s.isTyping);
   const addMessage = useChatStore((s) => s.addMessage);
@@ -38,11 +36,6 @@ export function useChat({ conversationId, recipientId, recipientPubKey }: UseCha
   const setTyping = useChatStore((s) => s.setTyping);
   const clear = useChatStore((s) => s.clear);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cleanupRef = useRef<{ messages: ChatMessage[] }>({
-    messages: [],
-  });
-
-  cleanupRef.current = { messages };
 
   const query = useInfiniteQuery({
     queryKey: ['messages', conversationId],
@@ -104,19 +97,9 @@ export function useChat({ conversationId, recipientId, recipientPubKey }: UseCha
 
   useEffect(() => {
     return () => {
-      const { messages: currentMessages } = cleanupRef.current;
-      const socket = getSocket();
-      const unreadMessages = currentMessages.filter(
-        (m) => m.senderId !== 'me' && m.senderId !== currentUserId && m.status !== 'read',
-      );
-      if (socket && unreadMessages.length > 0) {
-        for (const msg of unreadMessages) {
-          socket.emit('message:read', { messageId: msg._id });
-        }
-      }
       clear();
     };
-  }, [clear, recipientId, currentUserId]);
+  }, [clear]);
 
   const sendText = useCallback(
     async (text: string) => {

@@ -1,13 +1,17 @@
 import { io, type Socket } from 'socket.io-client';
-import { logger } from './api';
+import { logger, getAccessToken } from './api';
 
 let socket: Socket | null = null;
 
-export function connect(token: string): Socket {
+export function connect(): Socket {
   if (socket?.connected) return socket;
 
   socket = io(`${process.env.EXPO_PUBLIC_SOCKET_URL}/chat`, {
-    auth: { token },
+    auth: (cb) => {
+      getAccessToken()
+        .then((token) => cb({ token: token ?? '' }))
+        .catch(() => cb({ token: '' }));
+    },
     transports: ['websocket'],
     reconnection: true,
     reconnectionDelay: 1000,

@@ -2,7 +2,6 @@ import React, { useEffect, useCallback, memo, type ReactNode } from 'react';
 import { View, Text, type ColorValue } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useNetInfo } from '@react-native-community/netinfo';
-import { getAccessToken } from '@/services/api';
 import { connect, disconnect } from '@/services/socket';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
@@ -21,14 +20,7 @@ export default function MainLayout() {
   useIncomingCall();
 
   useEffect(() => {
-    let socket: ReturnType<typeof connect> | null = null;
-
-    (async () => {
-      const token = await getAccessToken();
-      if (token) {
-        socket = connect(token);
-      }
-    })();
+    connect();
 
     return () => {
       disconnect();

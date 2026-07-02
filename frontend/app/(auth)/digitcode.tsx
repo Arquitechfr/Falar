@@ -7,7 +7,7 @@ import * as Crypto from 'expo-crypto';
 import * as SecureStore from 'expo-secure-store';
 import { fromByteArray } from 'base64-js';
 import { deriveKeypair } from '@/features/crypto/keyDerivation';
-import { verifyOtp } from '@/features/auth/authApi';
+import { verifyOtp, extractApiError } from '@/features/auth/authApi';
 import { setTokens, logger } from '@/services/api';
 import { useCryptoStore } from '@/features/crypto/cryptoStore';
 import { useAuthStore } from '@/features/auth/authStore';
@@ -25,8 +25,9 @@ export default function DigitCodeScreen() {
   const router = useRouter();
   const { colors, radii } = useTheme();
   const toast = useToast();
-  const params = useLocalSearchParams<{ phone: string; code: string; isNewUser: string; keySalt: string }>();
+  const params = useLocalSearchParams<{ phone: string; code: string; isNewUser: string; keySalt: string; mode?: string }>();
   const isNewUser = params.isNewUser === 'true';
+  const isRestore = params.mode === 'restore';
 
   const keySalt = useMemo(() => {
     if (params.keySalt) return params.keySalt;
@@ -42,10 +43,10 @@ export default function DigitCodeScreen() {
 
   const handlePinFilled = useCallback((value: string) => {
     setPin(value);
-    if (isNewUser) {
+    if (isNewUser && !isRestore) {
       setStep('confirm');
     }
-  }, [isNewUser]);
+  }, [isNewUser, isRestore]);
 
   const handleConfirmPinFilled = useCallback((value: string) => {
     setConfirmPin(value);
@@ -54,7 +55,7 @@ export default function DigitCodeScreen() {
   const handleSubmit = useCallback(async () => {
     if (isSubmitting.current) return;
     isSubmitting.current = true;
-    logger.log('[DigitCodeScreen] handleSubmit called', { isNewUser, phone: params.phone, code: params.code, step, pin, confirmPin });
+    logger.log('[DigitCodeScreen] handleSubmit called', { isNewUser, isRestore, phone: params.phone, code: params.code, step, pin, confirmPin });
 
     const activePin = step === 'confirm' ? confirmPin : pin;
 
@@ -64,13 +65,13 @@ export default function DigitCodeScreen() {
       return;
     }
 
-    if (isNewUser && step === 'pin') {
+    if (isNewUser && !isRestore && step === 'pin') {
       setStep('confirm');
       isSubmitting.current = false;
       return;
     }
 
-    if (isNewUser && pin !== confirmPin) {
+    if (isNewUser && !isRestore && pin !== confirmPin) {
       isSubmitting.current = false;
       toast.show('Les codes ne correspondent pas', 'error');
       return;
@@ -106,14 +107,7 @@ export default function DigitCodeScreen() {
 
       await setTokens(result.accessToken, result.refreshToken);
 
-      try {
-        await SecureStore.setItemAsync('falar_pin', activePin, {
-          requireAuthentication: true,
-          authenticationPrompt: 'Autorisez Falar à sauvegarder votre accès',
-        });
-      } catch {
-        // Si l'utilisateur refuse la biométrie : pas bloquant, le PIN manuel reste disponible
-      }
+      await SecureStore.setItemAsync('falar_private_key', fromByteArray(privateKey));
 
       useCryptoStore.getState().setKeys(privateKey, publicKey);
       useAuthStore.getState().login(result.user);
@@ -121,25 +115,28 @@ export default function DigitCodeScreen() {
       router.replace('/(main)/conversations');
     } catch (err) {
       logger.error('[DigitCodeScreen] error:', err);
-      const msg = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message;
-      toast.show(msg || 'Échec de la vérification', 'error');
+      toast.show(extractApiError(err), 'error');
     } finally {
       setLoading(false);
       isSubmitting.current = false;
     }
-  }, [pin, confirmPin, step, isNewUser, params, toast, router, keySalt]);
+  }, [pin, confirmPin, step, isNewUser, isRestore, params, toast, router, keySalt]);
 
-  const title = isNewUser
-    ? step === 'pin'
-      ? 'Créer un code PIN'
-      : 'Confirmer le code PIN'
-    : 'Votre code PIN';
+  const title = isRestore
+    ? 'Code PIN de restauration'
+    : isNewUser
+      ? step === 'pin'
+        ? 'Créer un code PIN'
+        : 'Confirmer le code PIN'
+      : 'Votre code PIN';
 
-  const subtitle = isNewUser
-    ? step === 'pin'
-      ? 'Mémorisez-le bien, il protège vos messages.'
-      : 'Entrez-le à nouveau pour confirmer'
-    : 'Entrez votre code pour accéder à vos messages.';
+  const subtitle = isRestore
+    ? 'Entrez le code PIN configuré sur votre autre appareil pour récupérer vos clés.'
+    : isNewUser
+      ? step === 'pin'
+        ? 'Mémorisez-le bien, il protège vos messages.'
+        : 'Entrez-le à nouveau pour confirmer'
+      : 'Entrez votre code pour accéder à vos messages.';
 
   const activePin = step === 'confirm' ? confirmPin : pin;
   const isPinComplete = activePin.length === PIN_LENGTH;
@@ -216,7 +213,7 @@ export default function DigitCodeScreen() {
               />
             )}
 
-            {isNewUser && step === 'confirm' && confirmPin.length === PIN_LENGTH && pin !== confirmPin && (
+            {isNewUser && !isRestore && step === 'confirm' && confirmPin.length === PIN_LENGTH && pin !== confirmPin && (
               <Text style={{ ...typography.caption, color: colors.danger, marginTop: spacing.sm }}>
                 Les codes ne correspondent pas
               </Text>
@@ -224,14 +221,14 @@ export default function DigitCodeScreen() {
           </View>
 
           <Button
-            label={loading ? 'Sécurisation...' : isNewUser ? 'Créer mon compte' : 'Se connecter'}
+            label={loading ? 'Sécurisation...' : isRestore ? 'Récupérer mes clés' : isNewUser ? 'Créer mon compte' : 'Se connecter'}
             onPress={handleSubmit}
             loading={loading}
             disabled={!isPinComplete || loading}
             fullWidth
           />
 
-          {isNewUser && step === 'confirm' && (
+          {isNewUser && !isRestore && step === 'confirm' && (
             <Button
               label="Retour"
               variant="ghost"

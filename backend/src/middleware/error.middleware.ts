@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
+import { isKnownPath } from './security.middleware.js';
 
 type BodyParserError = SyntaxError & { statusCode: number; body: unknown; type: string };
 
@@ -14,12 +15,13 @@ function isBodyParserError(err: unknown): err is BodyParserError {
 export function errorMiddleware(err: unknown, req: Request, res: Response, _next: NextFunction): void {
   if (isBodyParserError(err)) {
     const rawBody = (req as Request & { rawBody?: string }).rawBody;
+    const knownPath = isKnownPath(req.path);
     console.warn('[BodyParser] Invalid JSON body:', {
       method: req.method,
       path: req.path,
-      ip: req.ip,
+      ip: req.ip ?? 'unknown',
       userAgent: req.headers['user-agent'],
-      body: rawBody ?? err.body,
+      ...(knownPath && { body: rawBody ?? err.body }),
       type: err.type,
     });
     res.status(400).json({

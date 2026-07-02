@@ -74,6 +74,8 @@ export async function updateMe(data: {
   username?: string;
   deviceToken?: string;
   allowDirectMessages?: boolean;
+  publicKey?: string;
+  keySalt?: string;
 }): Promise<void> {
   await api.put('/users/me', data);
 }

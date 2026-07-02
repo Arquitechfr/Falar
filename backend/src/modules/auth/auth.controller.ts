@@ -10,6 +10,7 @@ export async function sendOtpController(req: Request, res: Response, next: NextF
     res.json({ success: true, isNewUser, keySalt });
   } catch (err) {
     if (err instanceof AuthError) {
+      console.warn(`[Auth] ${err.code}: ${err.message}`);
       res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
       return;
     }
@@ -24,6 +25,7 @@ export async function verifyOtpController(req: Request, res: Response, next: Nex
     res.json(result);
   } catch (err) {
     if (err instanceof AuthError) {
+      console.warn(`[Auth] ${err.code}: ${err.message}`);
       res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
       return;
     }
@@ -38,6 +40,7 @@ export async function refreshController(req: Request, res: Response, next: NextF
     res.json(result);
   } catch (err) {
     if (err instanceof AuthError) {
+      console.warn(`[Auth] ${err.code}: ${err.message}`);
       res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
       return;
     }

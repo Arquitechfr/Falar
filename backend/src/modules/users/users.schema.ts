@@ -9,6 +9,8 @@ export const updateMeSchema = z.object({
   username: z.string().min(3).max(30).optional(),
   deviceToken: z.string().min(1).optional(),
   allowDirectMessages: z.boolean().optional(),
+  publicKey: z.string().min(1).optional(),
+  keySalt: z.string().optional(),
 });
 
 export const searchUserSchema = z.object({

@@ -10,7 +10,7 @@ import { useAuthStore } from '@/features/auth/authStore';
 import { updateMe } from '@/features/users/usersApi';
 import { spacing } from '@/constants/spacing';
 import { ScreenHeader } from '@/components/ui';
-import { User, Shield, Bell, Moon, Database, Globe, HelpCircle, Info, ChevronRight, Users } from '@/components/ui/Icons';
+import { User, Shield, Bell, Moon, Database, Globe, HelpCircle, Info, ChevronRight, Users, Lock } from '@/components/ui/Icons';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -105,6 +105,24 @@ export default function SettingsScreen() {
                   color={colors.primary}
                 />
               )}
+              style={{ paddingVertical: spacing.sm }}
+            />
+          </View>
+        </List.Section>
+
+        <List.Section>
+          <List.Subheader style={{ color: colors.textSecondary, fontFamily: 'Outfit_500Medium', fontSize: 13, letterSpacing: 0.5 }}>
+            SÉCURITÉ
+          </List.Subheader>
+          <View style={{ backgroundColor: colors.card, borderRadius: 14, overflow: 'hidden' }}>
+            <List.Item
+              title="Code PIN & chiffrement"
+              description="Gérer le PIN de récupération"
+              descriptionStyle={{ color: colors.textSecondary, fontFamily: 'Outfit_400Regular', fontSize: 13 }}
+              titleStyle={{ color: colors.textPrimary, fontFamily: 'Outfit_400Regular', fontSize: 16 }}
+              left={() => iconBg(<Lock size={20} color={colors.primary} />)}
+              right={rightArrow}
+              onPress={() => router.push('/(main)/security')}
               style={{ paddingVertical: spacing.sm }}
             />
           </View>

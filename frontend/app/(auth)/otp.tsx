@@ -3,19 +3,32 @@ import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, Style
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import * as SecureStore from 'expo-secure-store';
+import * as Crypto from 'expo-crypto';
+import { fromByteArray } from 'base64-js';
+import { x25519 } from '@noble/curves/ed25519.js';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/constants/typography';
 import { spacing } from '@/constants/spacing';
 import { Button } from '@/components/ui';
+import { verifyOtp, extractApiError } from '@/features/auth/authApi';
+import { setTokens, logger } from '@/services/api';
+import { useCryptoStore } from '@/features/crypto/cryptoStore';
+import { useAuthStore } from '@/features/auth/authStore';
+import { registerForPushNotifications } from '@/services/notifications';
+import { useToast } from '@/components/ui/Toast';
 
 const OTP_LENGTH = 6;
 const RESEND_COOLDOWN = 60;
 const INPUT_SIZE = 52;
+const PRIVATE_KEY_STORAGE = 'falar_private_key';
 
 export default function OtpScreen() {
   const router = useRouter();
   const { colors, radii } = useTheme();
+  const toast = useToast();
   const params = useLocalSearchParams<{ phone: string; isNewUser: string; keySalt: string }>();
+  const isNewUser = params.isNewUser === 'true';
 
   const [digits, setDigits] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [loading, setLoading] = useState(false);
@@ -31,15 +44,32 @@ export default function OtpScreen() {
   }, []);
 
   const handleChange = useCallback((index: number, value: string) => {
-    if (value.length > 1) return;
-    const newDigits = [...digits];
-    newDigits[index] = value;
-    setDigits(newDigits);
+    const digit = value.replace(/\D/g, '');
 
-    if (value && index < OTP_LENGTH - 1) {
+    if (digit.length > 1) {
+      const pasted = digit.slice(0, OTP_LENGTH).split('');
+      setDigits(prev => {
+        const next = [...prev];
+        for (let i = 0; i < pasted.length && index + i < OTP_LENGTH; i++) {
+          next[index + i] = pasted[i];
+        }
+        return next;
+      });
+      const lastFilled = Math.min(index + pasted.length, OTP_LENGTH - 1);
+      refs.current[lastFilled]?.focus();
+      return;
+    }
+
+    setDigits(prev => {
+      const next = [...prev];
+      next[index] = digit;
+      return next;
+    });
+
+    if (digit && index < OTP_LENGTH - 1) {
       refs.current[index + 1]?.focus();
     }
-  }, [digits]);
+  }, []);
 
   const handleKeyPress = useCallback((index: number, key: string) => {
     if (key === 'Backspace' && !digits[index] && index > 0) {
@@ -48,22 +78,58 @@ export default function OtpScreen() {
   }, [digits]);
 
   const code = digits.join('');
-  const isComplete = code.length === OTP_LENGTH;
+  const isComplete = code.length === OTP_LENGTH && !digits.includes('');
 
-  const handleSubmit = useCallback(() => {
-    if (!isComplete) return;
+  const handleSubmit = useCallback(async () => {
+    if (!isComplete || loading) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setLoading(true);
-    router.push({
-      pathname: '/(auth)/digitcode',
-      params: {
-        phone: params.phone,
-        code,
-        isNewUser: params.isNewUser,
-        keySalt: params.keySalt || '',
-      },
-    });
-  }, [isComplete, code, params, router]);
+
+    try {
+      const storedKey = await SecureStore.getItemAsync(PRIVATE_KEY_STORAGE);
+      const keySalt = params.keySalt || '';
+
+      if (storedKey) {
+        const privateKey = Uint8Array.from(atob(storedKey), c => c.charCodeAt(0));
+        const publicKey = x25519.getPublicKey(privateKey);
+        const publicKeyBase64 = fromByteArray(publicKey);
+
+        logger.log('[OTP] Existing key found, verifying...');
+        const deviceToken = await registerForPushNotifications();
+        const result = await verifyOtp(params.phone, code, publicKeyBase64, deviceToken || undefined, keySalt);
+
+        await setTokens(result.accessToken, result.refreshToken);
+        useCryptoStore.getState().setKeys(privateKey, publicKey);
+        useAuthStore.getState().login(result.user);
+        router.replace('/(main)/conversations');
+      } else if (!isNewUser && keySalt) {
+        router.push({
+          pathname: '/(auth)/digitcode',
+          params: { phone: params.phone, code, isNewUser: 'false', keySalt, mode: 'restore' },
+        });
+      } else {
+        const randomKey = Crypto.getRandomBytes(32);
+        const publicKey = x25519.getPublicKey(randomKey);
+        const publicKeyBase64 = fromByteArray(publicKey);
+
+        await SecureStore.setItemAsync(PRIVATE_KEY_STORAGE, fromByteArray(randomKey));
+
+        logger.log('[OTP] New key generated, verifying...');
+        const deviceToken = await registerForPushNotifications();
+        const result = await verifyOtp(params.phone, code, publicKeyBase64, deviceToken || undefined, keySalt);
+
+        await setTokens(result.accessToken, result.refreshToken);
+        useCryptoStore.getState().setKeys(randomKey, publicKey);
+        useAuthStore.getState().login(result.user);
+        router.replace('/(main)/conversations');
+      }
+    } catch (err) {
+      logger.error('[OTP] verification error:', err);
+      toast.show(extractApiError(err), 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [isComplete, loading, code, params, router, toast, isNewUser]);
 
   const handleResend = useCallback(() => {
     if (cooldown > 0) return;
@@ -119,10 +185,10 @@ export default function OtpScreen() {
           </View>
 
           <Button
-            label={loading ? 'Vérification...' : 'Vérifier'}
+            label={loading ? 'Vérification...' : isNewUser ? 'Créer mon compte' : 'Se connecter'}
             onPress={handleSubmit}
             loading={loading}
-            disabled={!isComplete}
+            disabled={!isComplete || loading}
             fullWidth
           />
 

@@ -29,7 +29,7 @@ export async function deriveKeypair(
     {
       name: 'PBKDF2',
       salt: enc.encode(saltStr),
-      iterations: 310_000,
+      iterations: 100_000,
       hash: 'SHA-256',
     },
     baseKey,

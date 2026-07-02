@@ -4,7 +4,7 @@ module.exports = {
       name: 'falar-backend',
       script: 'src/app.ts',
       interpreter: './node_modules/.bin/tsx',
-      interpreter_args: '--env-file=.env',
+      env_file: '.env',
       instances: 1,
       autorestart: true,
       watch: false,

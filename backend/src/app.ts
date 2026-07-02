@@ -8,6 +8,7 @@ import { env, allowedOrigins } from './config/env.js';
 import { connectDB } from './config/db.js';
 import { setupSocketIO } from './config/socket.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
+import { forbidSensitiveFilesMiddleware, unknownPathMiddleware } from './middleware/security.middleware.js';
 import { setChatNamespace } from './modules/messages/messages.controller.js';
 
 import authRoutes from './modules/auth/auth.routes.js';
@@ -92,6 +93,8 @@ const app = express();
 app.set('trust proxy', 1);
 app.use(helmet());
 app.use(cors({ origin: allowedOrigins, credentials: true }));
+app.use(forbidSensitiveFilesMiddleware);
+app.use(unknownPathMiddleware);
 app.use(express.json({
   limit: '2mb',
   verify: (req, _res, buf) => {
@@ -129,6 +132,13 @@ app.get('/', (_req, res) => {
 // Health check
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
+});
+
+// Catch-all 404 for known prefixes but undefined sub-routes
+app.use((_req, res) => {
+  res.status(404).json({
+    error: { code: 'NOT_FOUND', message: 'Not found' },
+  });
 });
 
 // Error handler (must be last)

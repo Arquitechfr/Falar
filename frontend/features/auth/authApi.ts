@@ -50,3 +50,8 @@ export async function getMe(): Promise<AuthUser> {
   const res = await api.get<AuthUser>('/users/me');
   return res.data;
 }
+
+export function extractApiError(err: unknown): string {
+  const e = err as { response?: { data?: { error?: { message?: string } } }; message?: string };
+  return e?.response?.data?.error?.message || e?.message || 'Une erreur est survenue';
+}
